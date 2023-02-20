@@ -14,7 +14,7 @@ last_tag=$(git tag --sort=-v:refname | grep -E '^[0-9]+\.[0-9]+\.[0-9]+-rc[0-9]+
 
 # Get the current version number and release candidate number
 if [[ -n $last_tag ]]; then
-  version=$(echo $last_tag | sed 's/-rc[0-9]+$//')
+  version=$(echo $last_tag | sed 's/-rc[0-9]+*$//')
   rc_num=$(echo $last_tag | grep -oP '(?<=-rc)[0-9]+')
   rc_num=$((rc_num + 1))
 else
