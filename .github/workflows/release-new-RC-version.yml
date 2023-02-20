@@ -24,6 +24,9 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
         bash ci/add_rc_version.sh
+        git config --global user.email "glaucio.porcidesczekailo@atos.net"
+        git config --global user.name "Glaucio Czekailo"
+        git diff --exit-code --quiet .mvn/maven.config || git commit -m "Update Maven version" .mvn/maven.config
         git remote set-url origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/$GITHUB_REPOSITORY
         git push
         git push --tags

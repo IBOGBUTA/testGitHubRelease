@@ -27,4 +27,7 @@ new_tag="${version}-rc${rc_num}"
 # Update the Maven version in the maven.config file
 sed -i "s/-Drevision=.*/-Drevision=$new_tag/" .mvn/maven.config
 
+git config --global user.email "glaucio.porcidesczekailo@atos.net"
+git config --global user.name "Glaucio Czekailo"
+git diff --exit-code --quiet .mvn/maven.config || git commit -m "Update Maven version" .mvn/maven.config
 git tag $new_tag
