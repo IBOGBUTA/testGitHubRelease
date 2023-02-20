@@ -16,7 +16,7 @@ if [[ $tag =~ ([0-9]+)\.([0-9]+)\.([0-9]+)-SNAPSHOT ]]; then
     minor=${BASH_REMATCH[2]}
     patch=${BASH_REMATCH[3]}
 else
-    echo "Error: tag is not in the correct format" >&2
+    echo "Error: tag ($tag) is not in the correct format" >&2
     exit 1
 fi
 
