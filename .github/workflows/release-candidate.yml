@@ -21,7 +21,7 @@ jobs:
         distribution: 'adopt'
     - name: Run Release Candidate script
       env:
-        MY_PUSH_TOKEN: ${{ secrets.BOT }}
+        MY_PUSH_TOKEN: ${{ secrets.BOT_TOKEN }}
       run: |
         bash ci/release_candidate.sh
         git config --global user.email "glaucio.porcidesczekailo@atos.net"
