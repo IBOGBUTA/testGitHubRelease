@@ -19,6 +19,6 @@ jobs:
     - name: Run Release Candidate script
       run: |
         bash ci/release_candidate.sh
-        git diff --exit-code --quiet maven.config || git commit -m "Update Maven version" maven.config
+        git diff --exit-code --quiet .mvn/maven.config || git commit -m "Update Maven version" maven.config
         git push
         git push --tags
