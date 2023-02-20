@@ -30,6 +30,8 @@ git checkout -b "$branch"
 
 # Update the Maven version in the maven.config file
 sed -i "s/-Drevision=.*/-Drevision=$new_tag/" .mvn/maven.config
+git config --global user.email "glaucio.porcidesczekailo@atos.net"
+git config --global user.name "Glaucio Czekailo"
 git diff --exit-code --quiet .mvn/maven.config || git commit -m "Automatic update of version" .mvn/maven.config
 git tag "$new_tag"
 
@@ -45,8 +47,6 @@ new_tag="${major}.${minor}.${patch}"
 sed -i "s/-Drevision=.*/-Drevision=$new_tag/" .mvn/maven.config
 
 # Do the commit in master branch
-git config --global user.email "glaucio.porcidesczekailo@atos.net"
-git config --global user.name "Glaucio Czekailo"
 git diff --exit-code --quiet .mvn/maven.config || git commit -m "Automatic update of version" .mvn/maven.config
 git tag "$new_tag-SNAPSHOT"
 git push origin master
