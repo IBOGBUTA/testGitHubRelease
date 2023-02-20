@@ -39,7 +39,7 @@ git push --set-upstream origin "$branch"
 # back to master branch to continue the job.
 git checkout master
 patch=$((patch + 1))
-new_tag="${major}.${minor}.${patch}-SNAPSHOT"
+new_tag="${major}.${minor}.${patch}"
 
 # Update the Maven version in the maven.config file
 sed -i "s/-Drevision=.*/-Drevision=$new_tag/" .mvn/maven.config
