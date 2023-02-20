@@ -25,7 +25,7 @@ fi
 branch="VERSION-${major}.${minor}.${patch}"
 new_tag="${major}.${minor}.${patch}-rc0"
 
-# create the new branch
+# create RC branch
 git checkout -b "$branch"
 
 # Update the Maven version in the maven.config file
