@@ -8,7 +8,7 @@ if [[ ! $branch_name =~ ^main$ ]]; then
 fi
 
 # get the latest tag
-tag=$(git describe --abbrev=0 2>/dev/null)
+tag=$(git describe --tags --abbrev=0 2>/dev/null)
 
 # get the major, minor, and patch numbers
 if [[ $tag =~ ([0-9]+)\.([0-9]+)\.([0-9]+)-SNAPSHOT ]]; then
