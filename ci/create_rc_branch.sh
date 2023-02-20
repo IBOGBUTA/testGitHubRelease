@@ -1,9 +1,9 @@
 #!/bin/bash
 
-# Check if the current branch name matches the pattern main
+# Check if the current branch name matches the pattern master
 branch_name=$(git rev-parse --abbrev-ref HEAD)
-if [[ ! $branch_name =~ ^main$ ]]; then
-  echo "Error: You should create a RC branch from the main branch."
+if [[ ! $branch_name =~ ^master$ ]]; then
+  echo "Error: You should create a RC branch from the master branch."
   exit 1
 fi
 
@@ -36,17 +36,17 @@ git tag "$new_tag"
 # push the new tag and branch to remote
 git push --set-upstream origin "$branch"
 
-# back to main branch to continue the job.
-git checkout main
+# back to master branch to continue the job.
+git checkout master
 patch=$((patch + 1))
 new_tag="${major}.${minor}.${patch}-SNAPSHOT"
 
 # Update the Maven version in the maven.config file
 sed -i "s/-Drevision=.*/-Drevision=$new_tag/" .mvn/maven.config
 
-# Do the commit in main branch
+# Do the commit in master branch
 git config --global user.email "glaucio.porcidesczekailo@atos.net"
 git config --global user.name "Glaucio Czekailo"
 git diff --exit-code --quiet .mvn/maven.config || git commit -m "Automatic update of version" .mvn/maven.config
 git tag "$new_tag"
-git push origin main
+git push origin master
