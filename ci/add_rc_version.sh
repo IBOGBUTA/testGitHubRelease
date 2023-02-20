@@ -8,17 +8,18 @@ if [[ ! $branch_name =~ ^VERSION-[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
 fi
 
 # Get the latest tag that matches the pattern X.Y.Z-rcN
-last_tag=$(git describe --abbrev=0 --tags --match "[0-9]*.[0-9]*.[0-9]*-rc[0-9]*" 2>/dev/null)
+git fetch --tags
+#last_tag=$(git describe --abbrev=0 --tags --match "[0-9]*.[0-9]*.[0-9]*-rc[0-9]*")
+last_tag=$(git tag --sort=-v:refname | grep -E '^[0-9]+\.[0-9]+\.[0-9]+-rc[0-9]+$' | head -n1)
 
 # Get the current version number and release candidate number
 if [[ -n $last_tag ]]; then
-  version=$(echo $last_tag | sed 's/-rc[0-9]*$//')
-  rc_num=$(echo $last_tag | grep -oP '(?<=-rc)[0-9]*')
+  version=$(echo $last_tag | sed 's/-rc[0-9]+*$//')
+  rc_num=$(echo $last_tag | grep -oP '(?<=-rc)[0-9]+')
   rc_num=$((rc_num + 1))
 else
-  # Set the initial version number based on the current branch name
-  version=$(echo $branch_name | sed 's/^VERSION-//;s/\//./g')
-  rc_num=1
+  echo "Error: tag ($last_tag) is not in the correct format" >&2
+  exit 1
 fi
 
 # Create the new tag
