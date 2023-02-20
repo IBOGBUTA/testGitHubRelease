@@ -18,7 +18,7 @@ jobs:
         distribution: 'adopt'
     - name: Run Release Candidate script
       env:
-        CI_TOKEN: ${{ secrets.CI_TOKEN }}
+        CI_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
         bash ci/release_candidate.sh
         git diff --exit-code --quiet .mvn/maven.config || git commit -m "Update Maven version" .mvn/maven.config
