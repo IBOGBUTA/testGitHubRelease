@@ -9,7 +9,7 @@ fi
 
 # get the latest tag
 git fetch --tags
-tag=$(git describe --tags --match "[0-9]*.[0-9]*.[0-9]*-SNAPSHOT --abbrev=0")
+tag=$(git describe --tags --match "[0-9]*.[0-9]*.[0-9]*-SNAPSHOT" --abbrev=0)
 
 # get the major, minor, and patch numbers
 if [[ $tag =~ ([0-9]+)\.([0-9]+)\.([0-9]+)-SNAPSHOT ]]; then
