@@ -8,7 +8,7 @@ if [[ ! $branch_name =~ ^main$ ]]; then
 fi
 
 # get the latest tag
-git fetch
+git fetch origin
 tag=$(git describe --abbrev=0 --tags --match "[0-9]*.[0-9]*.[0-9]*-SNAPSHOT")
 
 # get the major, minor, and patch numbers
