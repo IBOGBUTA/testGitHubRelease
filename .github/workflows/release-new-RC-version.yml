@@ -1,4 +1,4 @@
-name: Release Candidate
+name: Release new Release Candidate version
 
 on:
   workflow_dispatch:
@@ -23,10 +23,7 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
-        bash ci/release_candidate.sh
-        git config --global user.email "glaucio.porcidesczekailo@atos.net"
-        git config --global user.name "Glaucio Czekailo"
-        git diff --exit-code --quiet .mvn/maven.config || git commit -m "Update Maven version" .mvn/maven.config
+        bash ci/add_rc_version.sh
         git remote set-url origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/$GITHUB_REPOSITORY
         git push
         git push --tags
