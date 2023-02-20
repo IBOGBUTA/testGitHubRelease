@@ -11,7 +11,7 @@ fi
 git fetch --tags
 tag=$(git tag --sort=-v:refname | grep -E '^[0-9]*+\.[0-9]*+\.[0-9]*+-SNAPSHOT$' | head -n1)
 
-# get the major, minor, and patch numbers
+# get the major, minor, and patch
 if [[ $tag =~ ([0-9]+)\.([0-9]+)\.([0-9]+)-SNAPSHOT ]]; then
     major=${BASH_REMATCH[1]}
     minor=${BASH_REMATCH[2]}
