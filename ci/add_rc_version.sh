@@ -8,7 +8,8 @@ if [[ ! $branch_name =~ ^VERSION-[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
 fi
 
 # Get the latest tag that matches the pattern X.Y.Z-rcN
-last_tag=$(git describe --abbrev=0 --tags --match "[0-9]*.[0-9]*.[0-9]*-rc[0-9]*" 2>/dev/null)
+git fetch --tags
+last_tag=$(git describe --abbrev=0 --tags --match "[0-9]*.[0-9]*.[0-9]*-rc[0-9]*")
 
 # Get the current version number and release candidate number
 if [[ -n $last_tag ]]; then
