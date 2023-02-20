@@ -21,7 +21,6 @@ else
     exit 1
 fi
 
-
 # End of getting values, going to RC branch.
 branch="VERSION-${major}.${minor}.${patch}"
 new_tag="${major}.${minor}.${patch}-rc0"
