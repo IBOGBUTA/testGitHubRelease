@@ -1,4 +1,4 @@
-name: (*)Create release branch
+name: [Create release branch]
 
 on:
   workflow_dispatch:
@@ -37,4 +37,4 @@ jobs:
       run: |
         git remote set-url origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/$GITHUB_REPOSITORY
         echo "Will create a ${{ github.event.inputs.release_type }} release branch"
-        #bash ci/create_release_branch.sh major
+        bash ci/create_release_branch.sh ${{ github.event.inputs.release_type }}
