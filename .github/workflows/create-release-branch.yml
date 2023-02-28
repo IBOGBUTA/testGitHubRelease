@@ -2,6 +2,8 @@ name: (Create release branch)
 
 on:
   workflow_dispatch:
+    branches:
+      - master
     inputs:
       release_type:
         type: choice
