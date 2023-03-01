@@ -1,4 +1,8 @@
 name: ( Build and deploy release candidate )
+description: |
+    Build and deploy release candidate
+    ===============
+    Simple text to show
 
 on:
   workflow_dispatch:
