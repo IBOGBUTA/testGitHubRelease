@@ -39,7 +39,8 @@ git checkout $branch_name
 # Check if the previous tag follows the format X.Y.Z(-HFN)-RCN-SNAPSHOT
 # get the latest tag
 git fetch --tags
-tag=$(git describe --tags --abbrev=0)
+#tag=$(git describe --tags --abbrev=0) # fails on Github
+tag=$(git tag --merged $branch_name --sort=-v:refname | head -n1)
 
 isHF=false
 # get the major, minor, patch, RC and HF on else branch 
