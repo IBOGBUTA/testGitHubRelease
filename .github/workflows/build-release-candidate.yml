@@ -38,7 +38,7 @@ jobs:
         git config --global user.name "Glaucio Czekailo"
     -name: GIT check for branch
       run: |
-        branch_name="VERSION-"${{ github.event.inputs.release_branch }}
+        branch_name="VERSION-${{ github.event.inputs.release_branch }}"
         if git rev-parse --verify "$branch_name" >/dev/null 2>&1
         then
             # The branch exists, so check it out
