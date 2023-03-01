@@ -34,6 +34,7 @@ else
 fi
 
 #switch to the release branch and continue
+git fetch
 git checkout $branch_name
 
 # Check if the previous tag follows the format X.Y.Z(-HFN)-RCN-SNAPSHOT
