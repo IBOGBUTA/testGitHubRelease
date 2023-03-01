@@ -40,8 +40,8 @@ git checkout $branch_name
 # Check if the previous tag follows the format X.Y.Z(-HFN)-RCN-SNAPSHOT
 # get the latest tag
 git fetch --tags
-#tag=$(git describe --tags --abbrev=0) # fails on Github
-tag=$(git tag --merged $branch_name --sort=-v:refname | head -n1)
+tag=$(git describe --tags --abbrev=0) # fails on Github
+#tag=$(git tag --merged $branch_name --sort=-v:refname | head -n1)
 
 isHF=false
 # get the major, minor, patch, RC and HF on else branch 
@@ -65,13 +65,13 @@ fi
 # Setup RC tag for this build
 new_rc_version="${major}.${minor}.${patch}"
 if [ "$isHF" = false ]; then
-	if [[ "$release_type" == "final" ]] then
+	if [[ "$release_type" == "final" ]]; then
 		new_rc_qualifier=""
 	else
 		new_rc_qualifier="-RC$rc"
 	fi
 else
-	if [[ "$release_type" == "final" ]] then
+	if [[ "$release_type" == "final" ]]; then
 		new_rc_qualifier="-HF$hf"
 	else
 		new_rc_qualifier="-HF$hf-RC$rc"
@@ -80,20 +80,20 @@ fi
 
 # Setup RC tag name for future development builds on this release branch
 future_rc_version="${major}.${minor}.${patch}"
-if [[ "$release_type" == "final" ]] then
+if [[ "$release_type" == "final" ]]; then
 	rc="1"
 else
 	((rc++))
 fi	
 
 if [ "$isHF" = false ]; then
-	if [[ "$release_type" == "final" ]] then
+	if [[ "$release_type" == "final" ]]; then
 		future_rc_qualifier="-HF1-RC$rc-SNAPSHOT"
 	else 
 		future_rc_qualifier="-RC$rc-SNAPSHOT"
 	fi	
 else
-	if [[ "$release_type" == "final" ]] then
+	if [[ "$release_type" == "final" ]]; then
 		((hf++))
 	fi
 	future_rc_qualifier="-HF$hf-RC$rc-SNAPSHOT"
@@ -114,7 +114,7 @@ echo "3. will commit the .mvn/maven.config changes and  create a tag $new_rc_ver
 #
 echo "4. Build goes here"
 
-if [[ "$release_type" == "final" ]] then
+if [[ "$release_type" == "final" ]]; then
 	echo "4.1 This a final release build, the result should go on some SERVER here" 
 fi
 
