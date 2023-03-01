@@ -1,27 +1,40 @@
 #!/bin/bash
 
 # Description:
-### This script can run only on release branch if the previous tag contains -RCN-SNAPSHOT in the name
+### This script can run only on master and it will continue on the release branch if the previous tag contains -RCN-SNAPSHOT in the name
 ### This is common code for Release RC and for the HF RC
 
-# Check if the current branch name doesn't match the pattern master
-branch_name=$(git rev-parse --abbrev-ref HEAD)
-if [[ $branch_name =~ ^master$ ]]; then
-  echo "Error: You should build a RC on a relase branch."
+
+# Check if the current branch name matches the pattern master
+BRANCH=$(git rev-parse --abbrev-ref HEAD)
+if [[ ! $BRANCH =~ ^master$ ]]; then
+  echo "Error: This script can be called only from the master."
   exit 1
 fi
 
-# Get the release type of this new branch
-# Check if the first argument exists
+# Get the branch name where the new RC will be built
+# Check if the second argument exists
 if [ -z "$1" ]; then
+    echo "Error: Branch name argument is missing"
+	exit 1
+else
+	branch_name="$1"
+fi
+
+# Get the release type of this new branch
+# Check if the second argument exists
+if [ -z "$2" ]; then
     release_type="rc"
 else
-	release_type="$1"
+	release_type="$2"
 	if [[ "$release_type" != "final" ]]; then
 		echo "Error: Release type argument can be empty or 'final'"
 		exit 1
 	fi
 fi
+
+#switch to the release branch and continue
+git checkout $branch_name
 
 # Check if the previous tag follows the format X.Y.Z(-HFN)-RCN-SNAPSHOT
 # get the latest tag
