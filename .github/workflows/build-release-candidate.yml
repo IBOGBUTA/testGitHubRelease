@@ -4,19 +4,14 @@ on:
   workflow_dispatch:
     branches:
       - master
-    inputs:
-      release_type:
-        type: choice
-        description: 'Release candidate type'
-        required: true
-        options:
-        - new RC
-        - final
-        default: 'new RC'
+    inputs:             
       release_branch:
         description: 'Branch version'
         required: true
         default: '3.0.0'
+      release_type:
+        type: boolean
+        description: 'Build final stable release'
 jobs:
   release-candidate:
     runs-on: ubuntu-latest
