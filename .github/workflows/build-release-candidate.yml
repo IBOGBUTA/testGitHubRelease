@@ -1,8 +1,5 @@
 name: ( Build and deploy release candidate )
-description: |
-    Build and deploy release candidate
-    ===============
-    Simple text to show
+description: *Build and deploy release candidate* allows you to advance through RC version and release a final version. This is possible with both releases and HFs. 
 
 on:
   workflow_dispatch:
