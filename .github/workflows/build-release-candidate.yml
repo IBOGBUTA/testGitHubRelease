@@ -1,4 +1,4 @@
-name: ( 2. Create Release Candidate or Final Build )
+name: - Create Release Candidate or Final Build
 
 on:
   workflow_dispatch:

@@ -1,4 +1,4 @@
-name: ( 1. Create Release Branch and build first candidate )
+name: - Create Release Branch & build first RC
 
 on:
   workflow_dispatch:
