@@ -1,4 +1,4 @@
-name: ( Build and deploy HF release candidate )
+name: ( Create HF Release Candidate or Final Build )
 
 on:
   workflow_dispatch:
@@ -11,7 +11,7 @@ on:
         default: '3.0.0'
       final_release:
         type: boolean
-        description: 'Build final stable release'
+        description: 'Build final stable release for HF'
 jobs:
   release-candidate:
     runs-on: ubuntu-latest
