@@ -1,5 +1,4 @@
 name: ( Build and deploy release candidate )
-description: Build and deploy release candidate allows you to advance through RC version and release a final version
 
 on:
   workflow_dispatch:
@@ -39,6 +38,17 @@ jobs:
         EXIT_CODE=$?
         if [[ $EXIT_CODE == '0' ]]; then
             echo "Git branch '$BRANCH' exists in the remote repository"
+            git fetch
+            git checkout $BRANCH
+            git fetch --tags
+            tag=$(git describe --tags --abbrev=0)
+            if [[ $tag =~ ([0-9]+)\.([0-9]+)\.([0-9]+)-RC([0-9]+)-SNAPSHOT ]]; then
+                echo "Release candidate can be released based on version $tag"
+            else
+                echo "Currently working on version $tag. Make sure you run the correct workflow."
+                exit 1
+            fi
+            git checkout master            
         elif [[ $EXIT_CODE == '2' ]]; then
             echo "Git branch '$BRANCH' does not exist in the remote repository"
             exit 1
