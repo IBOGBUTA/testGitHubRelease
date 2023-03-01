@@ -47,7 +47,8 @@ jobs:
             else
                 echo "Currently working on version $tag. Make a final release first."
                 exit 1
-            fi           
+            fi
+            git checkout master
         elif [[ $EXIT_CODE == '2' ]]; then
             echo "Git branch '$BRANCH' does not exist in the remote repository"
             exit 1
