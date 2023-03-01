@@ -36,7 +36,7 @@ jobs:
       run: |
         git config --global user.email "glaucio.porcidesczekailo@atos.net"
         git config --global user.name "Glaucio Czekailo"
-    -name: GIT check for branch
+    - name: GIT check for branch
       run: |
         branch_name="VERSION-${{ github.event.inputs.release_branch }}"
         if git rev-parse --verify "$branch_name" >/dev/null 2>&1
