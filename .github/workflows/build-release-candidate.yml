@@ -1,0 +1,58 @@
+name: (Build and deploy release candidate)
+
+on:
+  workflow_dispatch:
+    branches:
+      - master
+    inputs:
+      release_type:
+        type: choice
+        description: 'Release candidate type'
+        required: true
+        options:
+        - new RC
+        - final
+        default: 'new RC'
+      release_branch:
+        description: 'Branch version'
+        required: true
+        default: '3.0.0'
+jobs:
+  release-candidate:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+    - name: Install Git
+      run: sudo apt-get update && sudo apt-get install -y git
+    - name: Install Maven
+      uses: actions/setup-java@v1
+      with:
+        java-version: '8'
+        distribution: 'adopt'
+    - name: GIT comitter configuration
+      run: |
+        git config --global user.email "glaucio.porcidesczekailo@atos.net"
+        git config --global user.name "Glaucio Czekailo"
+    -name: GIT check for branch
+      run: |
+        branch_name="VERSION-"${{ github.event.inputs.release_branch }}
+        if git rev-parse --verify "$branch_name" >/dev/null 2>&1
+        then
+            # The branch exists, so check it out
+            echo "Branch $branch_name exists"
+        else
+            # The branch doesn't exist, so return an exit code of 1
+            echo "Branch $branch_name does not exist."
+            exit 1
+        fi
+    - name: Run ci script
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        git remote set-url origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/$GITHUB_REPOSITORY
+        
+        #echo "Will create a ${{ github.event.inputs.release_type }} release branch"
+        #bash ci/create_release_branch.sh ${{ github.event.inputs.release_type }}
