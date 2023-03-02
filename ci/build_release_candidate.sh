@@ -103,48 +103,12 @@ function preBuildPreparation() {
 	git tag "$new_rc_version$new_rc_qualifier" "$branch_name"
 	echo "3. will commit the .mvn/maven.config changes and  create a tag $new_rc_version$new_rc_qualifier to branch: $branch_name"
 	
-	# Setup RC tag name for future development builds on this release branch
-	future_rc_version="${major}.${minor}.${patch}"
-	if [[ "$release_type" == "final" ]]; then
-		rc="1"
-	else
-		((rc++))
-	fi	
-
-	if [ "$isHF" = false ]; then
-		if [[ "$release_type" == "final" ]]; then
-			future_rc_qualifier="-HF1-RC$rc-SNAPSHOT"
-		else 
-			future_rc_qualifier="-RC$rc-SNAPSHOT"
-		fi	
-	else
-		if [[ "$release_type" == "final" ]]; then
-			((hf++))
-		fi
-		future_rc_qualifier="-HF$hf-RC$rc-SNAPSHOT"
-	fi
-	export RC_future_version="$future_rc_version"
-	export RC_future_qualifier="$future_rc_qualifier"
-	
 	echo "5. build can start now"
+	git push --tags 
+	git push
 }
 
-function postBuildActions() {
-	if [[ -z "$RC_future_version" || -z "$RC_future_qualifier" ]]; then
-		echo "Error: preBuildPreparation() was not executed. postBuildActions() cannot run."
-	fi
-	
-	# Make sure you are still running this code on the correct branch
-	
-	# Get the branch name where the new RC will be built
-	# Check if the argument exists
-	if [ -z "$1" ]; then
-    	echo "Error: Branch name argument is missing"
-		exit 1
-	else
-    	branch_name="$1"
-	fi
-	
+function postBuildActions() {	
 	# Check if the current branch name matches the pattern master
 	BRANCH=$(git rev-parse --abbrev-ref HEAD)
 	if [[ ! $BRANCH =~ ^master$ ]]; then
@@ -165,8 +129,45 @@ function postBuildActions() {
 	git fetch
 	git checkout $branch_name
 	
-	future_rc_version="$RC_future_version"
-	future_rc_qualifier="$RC_future_qualifier"
+	isHF=false
+	# get the major, minor, patch, RC and HF on else branch 
+	if [[ $tag =~ ([0-9]+)\.([0-9]+)\.([0-9]+)-RC([0-9]+) ]]; then
+		major=${BASH_REMATCH[1]}
+		minor=${BASH_REMATCH[2]}
+		patch=${BASH_REMATCH[3]}
+		rc=${BASH_REMATCH[4]}
+	elif [[ $tag =~ ([0-9]+)\.([0-9]+)\.([0-9]+)-HF([0-9]+)-RC([0-9]+) ]]; then
+		major=${BASH_REMATCH[1]}
+		minor=${BASH_REMATCH[2]}
+		patch=${BASH_REMATCH[3]}
+		hf=${BASH_REMATCH[4]}
+		rc=${BASH_REMATCH[5]}
+		isHF=true;
+	else
+		echo "Error: tag ($tag) is not in the correct format" >&2
+		exit 1
+	fi
+	
+	# Setup RC tag name for future development builds on this release branch
+	future_rc_version="${major}.${minor}.${patch}"
+	if [[ "$release_type" == "final" ]]; then
+		rc="1"
+	else
+		((rc++))
+	fi	
+
+	if [ "$isHF" = false ]; then
+		if [[ "$release_type" == "final" ]]; then
+			future_rc_qualifier="-HF1-RC$rc-SNAPSHOT"
+		else 
+			future_rc_qualifier="-RC$rc-SNAPSHOT"
+		fi	
+	else
+		if [[ "$release_type" == "final" ]]; then
+			((hf++))
+		fi
+		future_rc_qualifier="-HF$hf-RC$rc-SNAPSHOT"
+	fi	
 	
 	# Update the Maven version in the maven.config file for future RC builds
 	updateMavenConfig "$future_rc_version" "$future_rc_qualifier"
@@ -176,13 +177,11 @@ function postBuildActions() {
 	git tag "$future_rc_version$future_rc_qualifier" "$branch_name"
 	echo "6. will commit the .mvn/maven.config changes and  create a tag $future_rc_version$future_rc_qualifier" 
 
-	echo "7. will push the new maven version and tags to $branch_name in the final step"
-}
-
-function finalStep() {
+	echo "7. will push the new maven version and tags to $branch_name in the final step"	
 	git push --tags 
 	git push
 }
+
 
 #OLD CODE is still here in case we needed
 function oldCode() {

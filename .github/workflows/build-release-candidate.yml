@@ -65,19 +65,19 @@ jobs:
         if [[ ${{ github.event.inputs.final_release }} == "true" ]]; then
             preBuildPreparation $BRANCH final
         else
-            current_branch=$(git rev-parse --abbrev-ref HEAD)
-            echo "0. Curent branch is $current_branch"
             preBuildPreparation $BRANCH
-            current_branch=$(git rev-parse --abbrev-ref HEAD)
-            echo "1. Curent branch is $current_branch"
         fi
-
+    - name: Run build script
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
         echo "Build script will run here"
-        
-        current_branch=$(git rev-parse --abbrev-ref HEAD)
-        echo "2. Curent branch is $current_branch"
+    - name: Post-build version preparation
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        source ci/build_release_candidate.sh
         postBuildActions $BRANCH
-        finalStep
     
 
         
