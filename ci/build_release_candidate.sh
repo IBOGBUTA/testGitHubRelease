@@ -185,6 +185,66 @@ function postBuildActions() {
 	git push
 }
 
+function revertIfBuildFails() {
+	# Check if the current branch name matches the pattern master
+	BRANCH=$(git rev-parse --abbrev-ref HEAD)
+	if [[ ! $BRANCH =~ ^master$ ]]; then
+	  echo "Error: This script can be called only from the master."
+	  exit 1
+	fi
+	
+	# Get the branch name where the revert is needed
+	# Check if the first argument exists
+	if [ -z "$1" ]; then
+		echo "Error: Branch name argument is missing"
+		exit 1
+	else
+		branch_name="$1"
+	fi
+	
+	#switch to the release branch and continue
+	git fetch
+	git checkout $branch_name	
+	git fetch --tags
+	tag=$(git describe --tags --abbrev=0)
+	
+	#get previous tag name on the branch
+	git tag -d $tag
+	git push --delete origin $tag
+	
+	git fetch --tags
+	#get previous tag name on the branch again
+	tag=$(git describe --tags --abbrev=0)
+	if [[ $tag =~ ([0-9]+)\.([0-9]+)\.([0-9]+)-RC([0-9]+)-SNAPSHOT ]]; then
+		major=${BASH_REMATCH[1]}
+		minor=${BASH_REMATCH[2]}
+		patch=${BASH_REMATCH[3]}
+		rc=${BASH_REMATCH[4]}
+	elif [[ $tag =~ ([0-9]+)\.([0-9]+)\.([0-9]+)-HF([0-9]+)-RC([0-9]+)-SNAPSHOT ]]; then
+		major=${BASH_REMATCH[1]}
+		minor=${BASH_REMATCH[2]}
+		patch=${BASH_REMATCH[3]}
+		hf=${BASH_REMATCH[4]}
+		rc=${BASH_REMATCH[5]}
+		isHF=true;
+	else
+		echo "Error: tag ($tag) is not in the correct format" >&2
+		exit 1
+	fi
+	
+	revert_version="${major}.${minor}.${patch}"
+	
+	if [ "$isHF" = false ]; then
+		revert_qualifier="-RC$rc-SNAPSHOT"
+	else
+		revert_qualifier="-HF$hf-RC$rc-SNAPSHOT"
+	fi
+	
+	updateMavenConfig "$revert_version" "$revert_qualifier"
+	git diff --exit-code --quiet .mvn/maven.config || git commit -m "Automatic update of version" .mvn/maven.config
+	git push
+	
+}
 
 #OLD CODE is still here in case we needed
 function oldCode() {
