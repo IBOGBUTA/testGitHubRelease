@@ -130,7 +130,7 @@ function preBuildPreparation() {
 }
 
 function postBuildActions() {
-	if [[ -z "$RC_future_version" || -z "$future_rc_qualifier" ]]; then
+	if [[ -z "$RC_future_version" || -z "$RC_future_qualifier" ]]; then
 		echo "Error: preBuildPreparation() was not executed. postBuildActions() cannot run."
 	fi
 	
