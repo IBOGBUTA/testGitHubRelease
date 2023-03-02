@@ -134,25 +134,44 @@ function postBuildActions() {
 		echo "Error: preBuildPreparation() was not executed. postBuildActions() cannot run."
 	fi
 	
-	# Check if the current branch name matches the pattern master
-	BRANCH=$(git rev-parse --abbrev-ref HEAD)
-	if [[ ! $BRANCH =~ ^master$ ]]; then
-	  echo "Error: postBuildActions() can be called only from the master."
-	  exit 1
-	fi
+	# Make sure you are still running this code on the correct branch
 	
 	# Get the branch name where the new RC will be built
 	# Check if the argument exists
 	if [ -z "$1" ]; then
-		echo "Error: Branch name argument is missing"
+    	echo "Error: Branch name argument is missing"
 		exit 1
 	else
-		branch_name="$1"
+    	branch_name="$1"
 	fi
 	
+	# Check if the current branch name matches the pattern master
+	BRANCH=$(git rev-parse --abbrev-ref HEAD)
+	if [[ ! $BRANCH =~ ^"$branch_name"$ ]]; then
+	  echo "Error: postBuildActions() can only continue on the correct branch."
+	  exit 1
+	fi
+	
+	
+	# Check if the current branch name matches the pattern master
+	#BRANCH=$(git rev-parse --abbrev-ref HEAD)
+	#if [[ ! $BRANCH =~ ^master$ ]]; then
+	#  echo "Error: postBuildActions() can be called only from the master."
+	#  exit 1
+	#fi
+	
+	# Get the branch name where the new RC will be built
+	# Check if the argument exists
+	#if [ -z "$1" ]; then
+    #	echo "Error: Branch name argument is missing"
+	#	exit 1
+	#else
+    #	branch_name="$1"
+	#fi
+	
 	#switch to the release branch and continue
-	git fetch
-	git checkout $branch_name
+	#git fetch
+	#git checkout $branch_name
 	
 	future_rc_version="$RC_future_version"
 	future_rc_qualifier="$RC_future_qualifier"

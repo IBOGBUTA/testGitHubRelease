@@ -53,19 +53,34 @@ jobs:
             echo "Git branch '$BRANCH' does not exist in the remote repository"
             exit 1
         fi        
-    - name: Run ci script
+    - name: Pre-build version preparation
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
         git remote set-url origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/$GITHUB_REPOSITORY        
         echo "Will work on branch VERSION-${{ github.event.inputs.release_branch }}"
         echo "Release type will be final? Answer: ${{ github.event.inputs.final_release }}"  
-        
+        source ci/build_release_candidate.sh
         BRANCH="VERSION-${{ github.event.inputs.release_branch }}"
         if [[ ${{ github.event.inputs.final_release }} == "true" ]]; then
-            bash ci/build_release_candidate.sh $BRANCH final
+            preBuildPreparation $BRANCH final
         else
-            bash ci/build_release_candidate.sh $BRANCH
+            preBuildPreparation $BRANCH
         fi
+    - name: Run build script
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        echo "Build script will run here"
+    - name: Post-build version preparation
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        source ci/build_release_candidate.sh
+        BRANCH="VERSION-${{ github.event.inputs.release_branch }}"
+        postBuildActions $BRANCH
+        finalStep
+    
+
         
         
