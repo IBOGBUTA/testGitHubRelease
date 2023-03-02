@@ -117,7 +117,7 @@ function postBuildActions() {
 	fi
 	
 	# Get the branch name where the new RC will be built
-	 Check if the argument exists
+	# Check if the argument exists
 	if [ -z "$1" ]; then
     	echo "Error: Branch name argument is missing"
 		exit 1
