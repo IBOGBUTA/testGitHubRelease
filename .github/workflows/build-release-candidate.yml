@@ -76,6 +76,8 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
+        #return to master
+        git checkout master
         source ci/build_release_candidate.sh
         BRANCH="VERSION-${{ github.event.inputs.release_branch }}"
         postBuildActions $BRANCH
