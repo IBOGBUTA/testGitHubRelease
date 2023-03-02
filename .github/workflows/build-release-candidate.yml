@@ -67,15 +67,22 @@ jobs:
         else
             preBuildPreparation $BRANCH
         fi
+
+        ON_BRANCH=$(git rev-parse --abbrev-ref HEAD)
+        echo "Running on branch $ON_BRANCH"
     - name: Run build script
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
+        ON_BRANCH=$(git rev-parse --abbrev-ref HEAD)
+        echo "Running on branch $ON_BRANCH"
         echo "Build script will run here"
     - name: Post-build version preparation
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
+        ON_BRANCH=$(git rev-parse --abbrev-ref HEAD)
+        echo "Running on branch $ON_BRANCH"
         #return to master
         git checkout master
         source ci/build_release_candidate.sh
