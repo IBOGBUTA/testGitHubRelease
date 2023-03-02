@@ -3,10 +3,6 @@
 # Description:
 ### This script can run only on master branch
 
-# Git setup
-#git config --global user.email "bogdan.buta@atos.net"
-#git config --global user.name "Bogdan Buta"
-
 # Check if the current branch name matches the pattern master
 branch_name=$(git rev-parse --abbrev-ref HEAD)
 if [[ ! $branch_name =~ ^master$ ]]; then
@@ -62,12 +58,12 @@ echo "New $release_type release version base will be ${major}.${minor}.${patch}"
 branch="VERSION-${major}.${minor}.${patch}"
 
 # Setup new RC tag name for initial build
-new_rc_version="${major}.${minor}.${patch}"
-new_rc_qualifier="-RC1"
+#new_rc_version="${major}.${minor}.${patch}"
+#new_rc_qualifier="-RC1"
 
 # Setup RC tag name for future development builds on this release branch
 future_rc_version="${major}.${minor}.${patch}"
-future_rc_qualifier="-RC2-SNAPSHOT"
+future_rc_qualifier="-RC1-SNAPSHOT"
 
 # Setup new master tag
 ((master_patch=patch+1))
@@ -80,21 +76,21 @@ echo "1. will checkout branch $branch"
 
 
 # Update the Maven version in the maven.config file
-sed -i "s/-Drevision=.*/-Drevision=$new_rc_version/" .mvn/maven.config
-sed -i "s/-Dchangelist=.*/-Dchangelist=$new_rc_qualifier/" .mvn/maven.config
-echo "2. will update .mvn/maven.config on branch to $new_rc_version and $new_rc_qualifier"
+#sed -i "s/-Drevision=.*/-Drevision=$new_rc_version/" .mvn/maven.config
+#sed -i "s/-Dchangelist=.*/-Dchangelist=$new_rc_qualifier/" .mvn/maven.config
+#echo "2. will update .mvn/maven.config on branch to $new_rc_version and $new_rc_qualifier"
 
 
 #drop the snapshot for now
-git diff --exit-code --quiet .mvn/maven.config || git commit -m "Automatic update of version" .mvn/maven.config
-git tag "$new_rc_version$new_rc_qualifier" "$branch"
-echo "3. will commit the .mvn/maven.config changes and  create a tag $new_rc_version$new_rc_qualifier"  
+#git diff --exit-code --quiet .mvn/maven.config || git commit -m "Automatic update of version" .mvn/maven.config
+#git tag "$new_rc_version$new_rc_qualifier" "$branch"
+#echo "3. will commit the .mvn/maven.config changes and  create a tag $new_rc_version$new_rc_qualifier"  
 
 
 # Build goes here
 #
 #
-echo "4. Build goes here"
+#echo "4. Build goes here"
 
 # Update the Maven version in the maven.config file for future RC builds
 sed -i "s/-Drevision=.*/-Drevision=$future_rc_version/" .mvn/maven.config
