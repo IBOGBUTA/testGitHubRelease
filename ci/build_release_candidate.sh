@@ -128,6 +128,9 @@ function postBuildActions() {
 	#switch to the release branch and continue
 	git fetch
 	git checkout $branch_name
+
+	git fetch --tags
+	tag=$(git describe --tags --abbrev=0) 
 	
 	isHF=false
 	# get the major, minor, patch, RC and HF on else branch 
