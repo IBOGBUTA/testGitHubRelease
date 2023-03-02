@@ -67,17 +67,9 @@ jobs:
         else
             preBuildPreparation $BRANCH
         fi
-    - name: Run build script
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      run: |
+
         echo "Build script will run here"
-    - name: Post-build version preparation
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      run: |
-        source ci/build_release_candidate.sh
-        BRANCH="VERSION-${{ github.event.inputs.release_branch }}"
+
         postBuildActions $BRANCH
         finalStep
     
