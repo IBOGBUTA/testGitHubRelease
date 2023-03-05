@@ -1,0 +1,120 @@
+name: 2 Build next Release Candidate
+
+on:
+  workflow_dispatch:
+    branches:
+      - master
+    inputs:             
+      release_branch:
+        description: 'Branch version'
+        required: true
+        default: '3.0.0'
+      final_release:
+        type: boolean
+        description: 'Build final stable release'
+      build_restrictions:
+        type: choice
+        description: 'Build type restrictions'
+        required: true
+        options:
+        - No restrictions
+        - Must be a Release
+        - Must be a Hotfix
+        default: 'No restrictions'
+jobs:
+  release-candidate:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+    - name: Install Git
+      run: sudo apt-get update && sudo apt-get install -y git
+    - name: Install Maven
+      uses: actions/setup-java@v1
+      with:
+        java-version: '8'
+        distribution: 'adopt'
+    - name: GIT comitter configuration
+      run: |
+        git config --global user.email "glaucio.porcidesczekailo@atos.net"
+        git config --global user.name "Glaucio Czekailo"
+    - name: GIT check for branch
+      run: |
+        BRANCH="VERSION-${{ github.event.inputs.release_branch }}"
+        git ls-remote --exit-code --heads origin $BRANCH >/dev/null 2>&1
+        EXIT_CODE=$?
+        if [[ $EXIT_CODE == '0' ]]; then
+            echo "Git branch '$BRANCH' exists in the remote repository"
+            git fetch
+            git checkout $BRANCH
+            git fetch --tags
+            tag=$(git describe --tags --abbrev=0)
+            nextVersionType="unknown"
+            if [[ $tag =~ ([0-9]+)\.([0-9]+)\.([0-9]+)-RC([0-9]+)-SNAPSHOT ]]; then
+                echo "Next Release candidate can be released based on version $tag"
+                nextVersionType="release"
+            elif [[ $tag =~ ([0-9]+)\.([0-9]+)\.([0-9]+)-HF([0-9]+)-RC([0-9]+)-SNAPSHOT ]]; then
+                echo "Next HF release candidate can be released based on version $tag" 
+                nextVersionType="hotfix"
+            else
+                echo "Currently working on version $tag. Next release version cannot be determined.Please correct the tags."
+                exit 1
+            fi
+            
+            if [[ "${{ github.event.inputs.build_restrictions }}" == "Must be a Release" && "$nextVersionType" == "hotfix" ]] {
+                echo "Error: Expecting release, but next version is a hotfix release. Is this the correct branch?"
+                exit 1
+            } elif [[ "${{ github.event.inputs.build_restrictions }}" == "Must be a Hotfix" && "$nextVersionType" == "release" ]] {
+                echo "Error: Expecting hotfix, but next version is a release. Is this the correct branch?"
+                exit 1
+            } else {
+                echo "Build can continue"
+            }                      
+        elif [[ $EXIT_CODE == '2' ]]; then
+            echo "Git branch '$BRANCH' does not exist in the remote repository"
+            exit 1
+        fi
+        
+        git checkout master
+        echo "BRANCH=$BRANCH" >> $GITHUB_ENV        
+    - name: Pre-build version preparation
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        git remote set-url origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/$GITHUB_REPOSITORY        
+        echo "Will work on branch VERSION-${{ github.event.inputs.release_branch }}"
+        echo "Release type will be final? Answer: ${{ github.event.inputs.final_release }}"  
+        source ci/build_release_candidate.sh
+        BRANCH="VERSION-${{ github.event.inputs.release_branch }}"
+        if [[ ${{ github.event.inputs.final_release }} == "true" ]]; then
+            preBuildPreparation $BRANCH final
+        else
+            preBuildPreparation $BRANCH
+        fi
+
+        ON_BRANCH=$(git rev-parse --abbrev-ref HEAD)
+        echo "Running on branch $ON_BRANCH"
+    - name: Run build script
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        ON_BRANCH=$(git rev-parse --abbrev-ref HEAD)
+        echo "Running on branch $ON_BRANCH"
+        echo "Build script will run here"
+    - name: Post-build version preparation
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        ON_BRANCH=$(git rev-parse --abbrev-ref HEAD)
+        echo "Running on branch $ON_BRANCH"
+        #return to master
+        git checkout master
+        source ci/build_release_candidate.sh
+        BRANCH="VERSION-${{ github.event.inputs.release_branch }}"
+        postBuildActions $BRANCH
+    
+
+        
+        
