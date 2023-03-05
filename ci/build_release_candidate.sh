@@ -49,12 +49,12 @@ function getNextVersion() {
 	fi
 	
 	#switch to the release branch and continue
-	git --quiet fetch
-	git --quiet checkout $branch_name
+	git fetch >/dev/null 2>&1
+	git checkout $branch_name >/dev/null 2>&1
 	
 	# Check if the previous tag follows the format X.Y.Z(-HFN)-RCN-SNAPSHOT
 	# get the latest tag
-	git --quiet fetch --tags
+	git fetch --tags >/dev/null 2>&1
 	tag=$(git describe --tags --abbrev=0) # fails on Github
 	#tag=$(git tag --merged $branch_name --sort=-v:refname | head -n1)
 	
