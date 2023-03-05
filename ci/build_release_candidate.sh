@@ -93,7 +93,7 @@ function getNextVersion() {
 		fi
 	fi
 	
-	echo $new_rc_version$new_rc_qualifier
+	echo "$new_rc_version$new_rc_qualifier"
 	return 0	
 }
 
