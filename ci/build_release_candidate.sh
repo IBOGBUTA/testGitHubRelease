@@ -21,7 +21,7 @@ function updateMavenConfig() {
 
 function getNextVersion() {
 	# Check if the current branch name matches the pattern master
-	BRANCH=$(git rev-parse --abbrev-ref HEAD >/dev/null 2>&1)
+	BRANCH=$(git rev-parse --abbrev-ref HEAD)
 	if [[ ! $BRANCH =~ ^master$ ]]; then
 	  echo "Error: preBuildPreparation() can be called only from the master."
 	  exit 1
@@ -49,13 +49,13 @@ function getNextVersion() {
 	fi
 	
 	#switch to the release branch and continue
-	git fetch >/dev/null 2>&1
-	git checkout $branch_name >/dev/null 2>&1
+	git -q fetch
+	git -q checkout $branch_name
 	
 	# Check if the previous tag follows the format X.Y.Z(-HFN)-RCN-SNAPSHOT
 	# get the latest tag
-	git fetch --tags >/dev/null 2>&1
-	tag=$(git describe --tags --abbrev=0 >/dev/null 2>&1) # fails on Github
+	git -q fetch --tags
+	tag=$(git describe --tags --abbrev=0) # fails on Github
 	#tag=$(git tag --merged $branch_name --sort=-v:refname | head -n1)
 	
 	isHF=false
