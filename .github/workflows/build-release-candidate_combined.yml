@@ -85,24 +85,25 @@ jobs:
       run: |
         git remote set-url origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/$GITHUB_REPOSITORY        
         echo "Will work on branch VERSION-${{ github.event.inputs.release_branch }}"
-        echo "Release type will be final? Answer: ${{ github.event.inputs.final_release }}"  
-        source ci/build_release_candidate.sh
-        BRANCH="VERSION-${{ github.event.inputs.release_branch }}"
-        if [[ ${{ github.event.inputs.final_release }} == "true" ]]; then
-            preBuildPreparation $BRANCH final
-        else
-            preBuildPreparation $BRANCH
-        fi
-
+        echo "Release type will be final? Answer: ${{ github.event.inputs.final_release }}" 
         ON_BRANCH=$(git rev-parse --abbrev-ref HEAD)
         echo "Running on branch $ON_BRANCH"
+        
+        final=""
+        if [[ ${{ github.event.inputs.final_release }} == "true" ]]; then
+            final="final"
+        fi        
+        source ci/build_release_candidate.sh        
+        buildVersion=$(getNextVersion $BRANCH $final)
+              
+        echo "BUILD_VERSION=$buildVersion" >> $GITHUB_ENV        
     - name: Run build script
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
         ON_BRANCH=$(git rev-parse --abbrev-ref HEAD)
         echo "Running on branch $ON_BRANCH"
-        echo "Build script will run here"
+        echo "Build script will run here with version $BUILD_VERSION"
     - name: Post-build version preparation
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -110,10 +111,9 @@ jobs:
         ON_BRANCH=$(git rev-parse --abbrev-ref HEAD)
         echo "Running on branch $ON_BRANCH"
         #return to master
-        git checkout master
-        source ci/build_release_candidate.sh
-        BRANCH="VERSION-${{ github.event.inputs.release_branch }}"
-        postBuildActions $BRANCH
+        #git checkout master
+        #source ci/build_release_candidate.sh        
+        #postBuildActions $BRANCH
     
 
         

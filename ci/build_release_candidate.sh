@@ -19,6 +19,84 @@ function updateMavenConfig() {
 ### This script can run only on master and it will continue on the release branch if the previous tag contains -RCN-SNAPSHOT in the name
 ### This is common code for Release RC and for the HF RC
 
+function getNextVersion() {
+	# Check if the current branch name matches the pattern master
+	BRANCH=$(git rev-parse --abbrev-ref HEAD)
+	if [[ ! $BRANCH =~ ^master$ ]]; then
+	  echo "Error: preBuildPreparation() can be called only from the master."
+	  exit 1
+	fi
+	
+	# Get the branch name where the new RC will be built
+	# Check if the second argument exists
+	if [ -z "$1" ]; then
+		echo "Error: Branch name argument is missing"
+		exit 1
+	else
+		branch_name="$1"
+	fi
+	
+	# Get the release type of this new candidate
+	# Check if the second argument exists
+	if [ -z "$2" ]; then
+		release_type="rc"
+	else
+		release_type="$2"
+		if [[ "$release_type" != "final" ]]; then
+			echo "Error: Release type argument can be empty or 'final'"
+			exit 1
+		fi
+	fi
+	
+	#switch to the release branch and continue
+	git fetch
+	git checkout $branch_name
+	
+	# Check if the previous tag follows the format X.Y.Z(-HFN)-RCN-SNAPSHOT
+	# get the latest tag
+	git fetch --tags
+	tag=$(git describe --tags --abbrev=0) # fails on Github
+	#tag=$(git tag --merged $branch_name --sort=-v:refname | head -n1)
+	
+	isHF=false
+	# get the major, minor, patch, RC and HF on else branch 
+	if [[ $tag =~ ([0-9]+)\.([0-9]+)\.([0-9]+)-RC([0-9]+)-SNAPSHOT ]]; then
+		major=${BASH_REMATCH[1]}
+		minor=${BASH_REMATCH[2]}
+		patch=${BASH_REMATCH[3]}
+		rc=${BASH_REMATCH[4]}
+	elif [[ $tag =~ ([0-9]+)\.([0-9]+)\.([0-9]+)-HF([0-9]+)-RC([0-9]+)-SNAPSHOT ]]; then
+		major=${BASH_REMATCH[1]}
+		minor=${BASH_REMATCH[2]}
+		patch=${BASH_REMATCH[3]}
+		hf=${BASH_REMATCH[4]}
+		rc=${BASH_REMATCH[5]}
+		isHF=true;
+	else
+		echo "Error: tag ($tag) is not in the correct format" >&2
+		exit 1
+	fi
+	
+	# Setup RC tag for the upcoming build
+	new_rc_version="${major}.${minor}.${patch}"
+	if [ "$isHF" = false ]; then
+		if [[ "$release_type" == "final" ]]; then
+			new_rc_qualifier=""
+		else
+			new_rc_qualifier="-RC$rc"
+		fi
+	else
+		if [[ "$release_type" == "final" ]]; then
+			new_rc_qualifier="-HF$hf"
+		else
+			new_rc_qualifier="-HF$hf-RC$rc"
+		fi
+	fi
+	
+	echo $new_rc_version$new_rc_qualifier
+	return 0	
+}
+
 function preBuildPreparation() {
 	# Check if the current branch name matches the pattern master
 	BRANCH=$(git rev-parse --abbrev-ref HEAD)
