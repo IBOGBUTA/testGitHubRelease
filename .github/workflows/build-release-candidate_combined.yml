@@ -96,7 +96,7 @@ jobs:
         source ci/build_release_candidate.sh        
         buildVersion=$(getNextVersion $BRANCH $final)
               
-        echo "BUILD_VERSION='$buildVersion'" >> $GITHUB_ENV        
+        echo "BUILD_VERSION=\"$buildVersion\"" >> $GITHUB_ENV        
     - name: Run build script
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
