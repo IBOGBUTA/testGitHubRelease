@@ -63,15 +63,15 @@ jobs:
                 exit 1
             fi
             
-            if [[ "${{ github.event.inputs.build_restrictions }}" == "Must be a Release" && "$nextVersionType" == "hotfix" ]] {
+            if [[ "${{ github.event.inputs.build_restrictions }}" == "Must be a Release" && "$nextVersionType" == "hotfix" ]]; then
                 echo "Error: Expecting release, but next version is a hotfix release. Is this the correct branch?"
                 exit 1
-            } elif [[ "${{ github.event.inputs.build_restrictions }}" == "Must be a Hotfix" && "$nextVersionType" == "release" ]] {
+            elif [[ "${{ github.event.inputs.build_restrictions }}" == "Must be a Hotfix" && "$nextVersionType" == "release" ]]; then
                 echo "Error: Expecting hotfix, but next version is a release. Is this the correct branch?"
                 exit 1
-            } else {
+            else
                 echo "Build can continue"
-            }                      
+            fi                     
         elif [[ $EXIT_CODE == '2' ]]; then
             echo "Git branch '$BRANCH' does not exist in the remote repository"
             exit 1
