@@ -108,17 +108,17 @@ jobs:
   #    build_base: "current version on branch"
   #    version: "${{ github.event.inputs.release_branch }}"
   build:
-  runs-on: ubuntu-latest
-  steps:
-    - name: Checkout repository
-      uses: actions/checkout@v2
-    - name: List files
-      run: ls
-    - name: Run build-specific-version
-      uses: ./.github/workflows/build-specific-version.yml
-      with:
-        build_base: "current version on branch"
-        version: "${{ github.event.inputs.release_branch }}"  
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+      - name: List files
+        run: ls
+      - name: Run build-specific-version
+        uses: ./.github/workflows/build-specific-version.yml
+        with:
+          build_base: "current version on branch"
+          version: "${{ github.event.inputs.release_branch }}"  
     
     
     #- name: Run build script
