@@ -101,7 +101,7 @@ jobs:
 
         buildVersion="$(echo "$buildVersion" | tr -d '\n\r')"
         echo "BUILD_VERSION=$buildVersion" >> $GITHUB_ENV
-    - name: Call build workflow
+  build:
       if: ${{ github.event.inputs.dry_run == 'false' }}
       uses: ./.github/workflows/build-specific-version.yml
       with:
@@ -120,18 +120,18 @@ jobs:
     #        echo "Build script will run here with version $BUILD_VERSION"
     #        ./build-specific-version.yml $BUILD_VERSION
     #    fi        
-    - name: Post-build version commits
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      run: |
-        if [[ ${{ github.event.inputs.dry_run }} == "true" ]]; then
-            echo "Dry run enabled. Will skip this step"
-        else      
-            ON_BRANCH=$(git rev-parse --abbrev-ref HEAD)
-            echo "Running on branch $ON_BRANCH"
-            #return to master
-            #git checkout master
-            #source ci/build_release_candidate.sh        
-            #postBuildActions $BRANCH
-        fi       
+    #- name: Post-build version commits
+    #  env:
+    #    GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    #  run: |
+    #    if [[ ${{ github.event.inputs.dry_run }} == "true" ]]; then
+    #        echo "Dry run enabled. Will skip this step"
+    #    else      
+    #        ON_BRANCH=$(git rev-parse --abbrev-ref HEAD)
+    #        echo "Running on branch $ON_BRANCH"
+    #        #return to master
+    #        #git checkout master
+    #        #source ci/build_release_candidate.sh        
+    #        #postBuildActions $BRANCH
+    #    fi       
         
