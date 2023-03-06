@@ -27,6 +27,8 @@ on:
 jobs:
   release-candidate:
     runs-on: ubuntu-latest
+    outputs: 
+      buildVersion: ${{ steps.prebuild.outputs.buildVersion }}
     steps:
     - name: Checkout code
       uses: actions/checkout@v2
@@ -83,6 +85,7 @@ jobs:
         git checkout master
         echo "BRANCH=$BRANCH" >> $GITHUB_ENV        
     - name: Pre-build version preparation
+      id: prebuild
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
@@ -101,8 +104,8 @@ jobs:
 
         buildVersion="$(echo "$buildVersion" | tr -d '\n\r')"
         echo "BUILD_VERSION=$buildVersion" >> $GITHUB_ENV   
-
-        echo "::set-output name=buildVersion::$BUILD_VERSION"
+        
+        echo "buildVersion=$BUILD_VERSION" >> $GITHUB_OUTPUT 
         
   build:
     needs: release-candidate
