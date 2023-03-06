@@ -49,6 +49,8 @@ jobs:
     - name: GIT check for branch
       run: |
         echo "Event: ${{ github.event_name }}"
+        echo "${{ inputs.branch }}"
+        echo "${{ inputs.buildVersion }}"
         
         if [[ "${{ github.event_name }}" == 'workflow_dispatch' ]]; then 
             if [[ "${{ github.event.inputs.build_base }}" == "current version on master" ]]; then
