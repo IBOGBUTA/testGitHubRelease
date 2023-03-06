@@ -47,15 +47,15 @@ jobs:
         git config --global user.name "Glaucio Czekailo"
     - name: GIT check for branch
       run: |       
-        if [[ "${{ github.event.inputs.build_base }}" == "current version on master" ]]; then
+        if [[ "${{ inputs.build_base }}" == "current version on master" ]]; then
             echo "Will use latest version on master for build"            
-        elif [[ "${{ github.event.inputs.build_base }}" == "current version on branch" ]]; then
-            BRANCH="VERSION-${{ github.event.inputs.version }}"
+        elif [[ "${{ inputs.build_base }}" == "current version on branch" ]]; then
+            BRANCH="VERSION-${{ inputs.version }}"
             echo "Will use latest on branch $BRANCH"            
-        elif [[ "${{ github.event.inputs.build_base }}" == "specific version(tag)" ]]; then
-            TAG="${{ github.event.inputs.version }}"
+        elif [[ "${{ inputs.build_base }}" == "specific version(tag)" ]]; then
+            TAG="${{ inputs.version }}"
             echo "Will checkout and use the following tag $TAG" 
-        elif [[ "${{ github.event.inputs.build_base }}" == "next" ]]; then
+        elif [[ "${{ inputs.build_base }}" == "next" ]]; then
             #hidden value 
             echo "Workflow was called from Build Release Candidate"            
             echo "Will build ${{ inputs.version }}"
