@@ -16,7 +16,7 @@ on:
         default: current version on branch
       version:
         description: 'Branch Version or Specific Version(tag):'
-        required: true
+        required: false
         default: '3.0.0'
 jobs:
   release-candidate:
