@@ -1,4 +1,4 @@
-name: 100 Create Release Candidate or Final Build
+name: 900 Create Release Candidate or Final Build
 
 on:
   workflow_dispatch:
