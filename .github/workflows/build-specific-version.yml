@@ -8,8 +8,7 @@ on:
         required: true
       buildVersion:
         type: string
-        required: true
-        
+        required: true        
   workflow_dispatch:
     branches:
       - master
