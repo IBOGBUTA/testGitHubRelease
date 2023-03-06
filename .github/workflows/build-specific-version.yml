@@ -92,9 +92,7 @@ jobs:
         ON_BRANCH=$(git rev-parse --abbrev-ref HEAD)
         echo "Running on branch $ON_BRANCH"
         
-        #force exit
-        exit 123
-        
+                
         #if [[ ${{ github.event.inputs.dry_run }} == "true" ]]; then
         #    echo "Dry run enabled. Will skip this step"
         #else      
