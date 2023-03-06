@@ -3,7 +3,7 @@ name: 3 Build custom version
 on:
   workflow_call:
     inputs:
-        build_base:
+      build_base:
         type: choice
         description: 'Build is based on:'
         required: true
