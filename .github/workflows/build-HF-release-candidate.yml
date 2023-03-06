@@ -1,4 +1,4 @@
-name: 3 Create HF Release Candidate or Final Build
+name: 101 Create HF Release Candidate or Final Build
 
 on:
   workflow_dispatch:
