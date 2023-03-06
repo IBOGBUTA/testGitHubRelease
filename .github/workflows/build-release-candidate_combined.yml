@@ -101,6 +101,10 @@ jobs:
 
         buildVersion="$(echo "$buildVersion" | tr -d '\n\r')"
         echo "BUILD_VERSION=$buildVersion" >> $GITHUB_ENV
+      outputs:
+        branch: $BRANCH
+        buildVersion: $BUILD_VERSION
+        
     #- name: Run build-specific-version
     #  uses: ./.github/workflows/build-specific-version.yml
     #  with:
@@ -108,10 +112,11 @@ jobs:
     #    version: "${{ github.event.inputs.release_branch }}"
         
   build:
+    needs: release-candidate
     uses: ./.github/workflows/build-specific-version.yml
     with:
-      build_base: "current version on branch"
-      version: "${{ github.event.inputs.release_branch }}"
+      branch: ${{ needs.release-candidate.outputs.branch }}"
+      buildVersion: ${{ needs.release-candidate.outputs.buildVersion }}"
   #build:
   #  runs-on: ubuntu-latest
   #  steps:
