@@ -101,26 +101,9 @@ jobs:
 
         buildVersion="$(echo "$buildVersion" | tr -d '\n\r')"
         echo "BUILD_VERSION=$buildVersion" >> $GITHUB_ENV
-    - name: Call build workflow
-      if: ${{ github.event.inputs.dry_run == 'false' }}
-      uses: actions/github-script@v4
-      with:
-        script: |
-          const resp = await github.actions.createWorkflowDispatch({
-            owner: context.repo.owner,
-            repo: context.repo.repo,
-            workflow_id: 'build-specific-version.yml', // or the name of your workflow file
-            ref: 'master',
-            inputs: {
-              build_base: "current version on branch",
-              version: "${{ github.event.inputs.release_branch }}"
-            }
-          });
-          console.log(resp);
-  
-  build:
-    if: ${{ github.event.inputs.dry_run == 'false' }}
-    uses: build-specific-version.yml
+        
+  build:    
+    uses: ./.github/workflows/build-specific-version.yml
     with:
         build_base: "current version on branch"
         version: "${{ github.event.inputs.release_branch }}"
