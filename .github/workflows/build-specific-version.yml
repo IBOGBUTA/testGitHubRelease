@@ -1,6 +1,15 @@
 name: 3 Build custom version
 
-on:      
+on:
+  workflow_call:
+    inputs:
+      branch:
+        type: string
+        required: true
+      buildVersion:
+        type: string
+        required: true
+        
   workflow_dispatch:
     branches:
       - master
