@@ -110,16 +110,16 @@ jobs:
     needs: release-candidate
     runs-on: ubuntu-latest
     steps:
-      -name: Call build workflow
-       uses: ./.github/workflows/build-specific-version.yml
-       with:
-         branch: ${{ needs.release-candidate.outputs.branch }}"
-         buildVersion: ${{ needs.release-candidate.outputs.buildVersion }}"
-       env:
-         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-       if: always()
-       id: call-wf2
-       run: echo "::set-output name=wf2-run-id::${{ steps.call-wf2.outputs.run_id }}"
+      - name: Call build workflow
+        uses: ./.github/workflows/build-specific-version.yml
+        with:
+          branch: ${{ needs.release-candidate.outputs.branch }}"
+          buildVersion: ${{ needs.release-candidate.outputs.buildVersion }}"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        if: always()
+        id: call-wf2
+        run: echo "::set-output name=wf2-run-id::${{ steps.call-wf2.outputs.run_id }}"
 
 
   #build:
