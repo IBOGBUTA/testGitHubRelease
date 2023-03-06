@@ -114,6 +114,15 @@ jobs:
     with:
       build_base: 'next'
       version: '${{ needs.release-candidate.outputs.buildVersion }}'
+      
+  update-tags-versions:
+    needs: build
+    runs-on: ubuntu-latest
+    steps: 
+      - name: Get build return code
+      - run: |
+            echo "Return code of the build job was $?"
+            
   #build:
   #  runs-on: ubuntu-latest
   #  steps:
