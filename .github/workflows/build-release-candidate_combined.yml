@@ -101,9 +101,9 @@ jobs:
 
         buildVersion="$(echo "$buildVersion" | tr -d '\n\r')"
         echo "BUILD_VERSION=$buildVersion" >> $GITHUB_ENV
-      outputs:
-        branch: $BRANCH
-        buildVersion: $BUILD_VERSION
+        outputs:
+          branch: $BRANCH
+          buildVersion: $BUILD_VERSION
         
     #- name: Run build-specific-version
     #  uses: ./.github/workflows/build-specific-version.yml
