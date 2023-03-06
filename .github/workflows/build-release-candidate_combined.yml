@@ -103,7 +103,7 @@ jobs:
         echo "BUILD_VERSION=$buildVersion" >> $GITHUB_ENV
   build:
       if: ${{ github.event.inputs.dry_run == 'false' }}
-      uses: ./.github/workflows/build-specific-version.yml
+      uses: ./.github/workflows/build-specific-version.yml@master
       with:
         build_base: "current version on branch"
         version: "${{ github.event.inputs.release_branch }}"
