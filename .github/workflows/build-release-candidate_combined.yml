@@ -113,7 +113,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v2
       - name: List files
-        run: ls
+        run: ls ./.github/workflows/build-specific-version.yml
       - name: Run build-specific-version
         uses: ./.github/workflows/build-specific-version.yml
         with:
