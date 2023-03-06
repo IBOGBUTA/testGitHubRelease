@@ -4,18 +4,11 @@ on:
   workflow_call:
     inputs:
       build_base:
-        type: choice
-        description: 'Build is based on:'
+        type: string
         required: true
-        options:
-        - current version on master
-        - current version on branch
-        - specific version(tag)
-        default: current version on branch
       version:
-        description: 'Branch Version or Specific Version(tag):'
-        required: false
-        default: '3.0.0'
+        type: string
+        required: true
         
   workflow_dispatch:
     branches:
