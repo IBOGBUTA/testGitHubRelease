@@ -104,19 +104,24 @@ jobs:
     outputs:
       branch: $BRANCH
       buildVersion: $BUILD_VERSION
-        
-    #- name: Run build-specific-version
-    #  uses: ./.github/workflows/build-specific-version.yml
-    #  with:
-    #    build_base: "current version on branch"
-    #    version: "${{ github.event.inputs.release_branch }}"
-        
+   
+       
   build:
     needs: release-candidate
-    uses: ./.github/workflows/build-specific-version.yml
-    with:
-      branch: ${{ needs.release-candidate.outputs.branch }}"
-      buildVersion: ${{ needs.release-candidate.outputs.buildVersion }}"
+    runs-on: ubuntu-latest
+    steps:
+      -name: Call build workflow
+       uses: ./.github/workflows/build-specific-version.yml
+       with:
+         branch: ${{ needs.release-candidate.outputs.branch }}"
+         buildVersion: ${{ needs.release-candidate.outputs.buildVersion }}"
+       env:
+         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+       if: always()
+       id: call-wf2
+       run: echo "::set-output name=wf2-run-id::${{ steps.call-wf2.outputs.run_id }}"
+
+
   #build:
   #  runs-on: ubuntu-latest
   #  steps:
