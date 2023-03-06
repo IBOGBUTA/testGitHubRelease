@@ -120,7 +120,7 @@ jobs:
   
   build:
     if: ${{ github.event.inputs.dry_run == 'false' }}
-    uses: ./.github/workflows/build-specific-version.yml
+    uses: ./build-specific-version.yml
     with:
         build_base: "current version on branch"
         version: "${{ github.event.inputs.release_branch }}"
