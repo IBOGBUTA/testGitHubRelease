@@ -101,28 +101,16 @@ jobs:
 
         buildVersion="$(echo "$buildVersion" | tr -d '\n\r')"
         echo "BUILD_VERSION=$buildVersion" >> $GITHUB_ENV
-    outputs:
-      branch: $BRANCH
-      buildVersion: $BUILD_VERSION
-   
-       
+                
+        echo "::set-output name=branch::$BRANCH"        
+        echo "::set-output name=buildVersion::$BUILD_VERSION"
+        
   build:
     needs: release-candidate
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v2
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-      - name: Call build workflow
-        uses: ./.github/workflows/build-specific-version.yml
-        with:
-          branch: ${{ needs.release-candidate.outputs.branch }}"
-          buildVersion: ${{ needs.release-candidate.outputs.buildVersion }}"
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}        
-
-
+    uses: ./.github/workflows/build-specific-version.yml
+    with:
+      branch: ${{ needs.release-candidate.outputs.branch }}
+      buildVersion: ${{ needs.release-candidate.outputs.buildVersion }}
   #build:
   #  runs-on: ubuntu-latest
   #  steps:
