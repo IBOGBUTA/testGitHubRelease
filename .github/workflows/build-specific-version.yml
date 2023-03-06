@@ -8,7 +8,8 @@ on:
         required: true
       buildVersion:
         type: string
-        required: true        
+        required: true
+        
   workflow_dispatch:
     branches:
       - master
@@ -47,20 +48,26 @@ jobs:
         git config --global user.name "Glaucio Czekailo"
     - name: GIT check for branch
       run: |
-        echo "${{ inputs.branch }}"
-        echo "${{ inputs.buildVersion }}"
-                
-        if [[ "${{ github.event.inputs.build_base }}" == "current version on master" ]]; then
-            echo "Will use latest version on master for build"
-            
-        elif [[ "${{ github.event.inputs.build_base }}" == "current version on branch" ]]; then
-            BRANCH="VERSION-${{ github.event.inputs.version }}"
-            echo "Will use latest on branch $BRANCH"            
-        else
-            TAG="${{ github.event.inputs.version }}"
-            echo "Will checkout and use the following tag $TAG"           
-        fi  
+        echo "Event: ${{ github.event_name }}"
         
+        if [[ "${{ github.event_name }}" == 'workflow_dispatch' ]]; then 
+            if [[ "${{ github.event.inputs.build_base }}" == "current version on master" ]]; then
+                echo "Will use latest version on master for build"
+                
+            elif [[ "${{ github.event.inputs.build_base }}" == "current version on branch" ]]; then
+                BRANCH="VERSION-${{ github.event.inputs.version }}"
+                echo "Will use latest on branch $BRANCH"            
+            else
+                TAG="${{ github.event.inputs.version }}"
+                echo "Will checkout and use the following tag $TAG"           
+            fi  
+        elif  [[ "${{ github.event_name }}" == 'workflow_call' ]]; then
+            echo "${{ inputs.branch }}"
+            echo "${{ inputs.buildVersion }}"
+        else
+            echo "Unknown event. Will exit"
+            exit 1
+        fi
     - name: Pre-build version preparation
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
