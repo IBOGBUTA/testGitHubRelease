@@ -46,29 +46,24 @@ jobs:
         git config --global user.email "glaucio.porcidesczekailo@atos.net"
         git config --global user.name "Glaucio Czekailo"
     - name: GIT check for branch
-      run: |
-        echo "Event: ${{ github.event_name }}"
-        echo "${{ inputs.build_base }}"
-        echo "${{ inputs.version }}"
-        
-        if [[ "${{ github.event_name }}" == 'workflow_dispatch' ]]; then 
-            if [[ "${{ github.event.inputs.build_base }}" == "current version on master" ]]; then
-                echo "Will use latest version on master for build"
-                
-            elif [[ "${{ github.event.inputs.build_base }}" == "current version on branch" ]]; then
-                BRANCH="VERSION-${{ github.event.inputs.version }}"
-                echo "Will use latest on branch $BRANCH"            
-            else
-                TAG="${{ github.event.inputs.version }}"
-                echo "Will checkout and use the following tag $TAG"           
-            fi  
-        elif  [[ "${{ github.event_name }}" == 'workflow_call' ]]; then
-            echo "${{ inputs.branch }}"
-            echo "${{ inputs.buildVersion }}"
+      run: |       
+        if [[ "${{ github.event.inputs.build_base }}" == "current version on master" ]]; then
+            echo "Will use latest version on master for build"            
+        elif [[ "${{ github.event.inputs.build_base }}" == "current version on branch" ]]; then
+            BRANCH="VERSION-${{ github.event.inputs.version }}"
+            echo "Will use latest on branch $BRANCH"            
+        elif [[ "${{ github.event.inputs.build_base }}" == "specific version(tag)" ]]; then
+            TAG="${{ github.event.inputs.version }}"
+            echo "Will checkout and use the following tag $TAG" 
+        elif [[ "${{ github.event.inputs.build_base }}" == "next" ]]; then
+            #hidden value 
+            echo "Workflow was called from Build Release Candidate"            
+            echo "Will build ${{ inputs.version }}"
         else
-            echo "Unknown event. Will exit"
+            echo "Unknown option. Will exit."
             exit 1
-        fi
+        fi  
+        
     - name: Pre-build version preparation
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
