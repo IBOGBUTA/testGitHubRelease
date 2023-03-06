@@ -106,13 +106,14 @@ jobs:
         echo "BUILD_VERSION=$buildVersion" >> $GITHUB_ENV   
         
         echo "buildVersion=$BUILD_VERSION" >> $GITHUB_OUTPUT 
+        echo $GITHUB_OUTPUT
         
   build:
     needs: release-candidate
     uses: ./.github/workflows/build-specific-version.yml
     with:
       build_base: 'next'
-      version: ${{ needs.release-candidate.outputs.buildVersion }}
+      version: '${{ needs.release-candidate.outputs.buildVersion }}'
   #build:
   #  runs-on: ubuntu-latest
   #  steps:
