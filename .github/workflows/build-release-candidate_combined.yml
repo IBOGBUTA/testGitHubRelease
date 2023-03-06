@@ -23,7 +23,7 @@ on:
         default: 'No restrictions'
       dry_run:
         type: boolean
-        description: 'Dry run(no build, no commit, just versioning)'
+        description: 'Dry run(no build, no commits, just check for next version)'
 jobs:
   release-candidate:
     runs-on: ubuntu-latest

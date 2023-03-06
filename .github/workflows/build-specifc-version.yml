@@ -1,0 +1,90 @@
+name: 3 Build custom version
+
+on:
+  workflow_dispatch:
+    branches:
+      - master
+    inputs:             
+      build_base:
+        type: choice
+        description: 'Build is based on:'
+        required: true
+        options:
+        - current version on master
+        - current version on branch
+        - specific version(tag)
+        default: current version on branch
+      version:
+        description: 'Branch Version or Specific Version(tag):'
+        required: true
+        default: '3.0.0'
+jobs:
+  release-candidate:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+    - name: Install Git
+      run: sudo apt-get update && sudo apt-get install -y git
+    - name: Install Maven
+      uses: actions/setup-java@v1
+      with:
+        java-version: '8'
+        distribution: 'adopt'
+    - name: GIT comitter configuration
+      run: |
+        git config --global user.email "glaucio.porcidesczekailo@atos.net"
+        git config --global user.name "Glaucio Czekailo"
+    - name: GIT check for branch
+      run: |
+        if [[ "${{ github.event.inputs.build_base }}" == "current version on master" ]]; then
+            echo "Will use latest version on master for build"
+            
+        elif [[ "${{ github.event.inputs.build_base }}" == "current version on branch" ]]; then
+            BRANCH="VERSION-${{ github.event.inputs.version }}"
+            echo "Will use latest on branch $BRANCH"            
+        else
+            TAG="${{ github.event.inputs.version }}"
+            echo "Will cheeckout and use the following tag $TAG"           
+        fi           
+    - name: Pre-build version preparation
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        git remote set-url origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/$GITHUB_REPOSITORY         
+        ON_BRANCH=$(git rev-parse --abbrev-ref HEAD)
+        echo "Running on branch $ON_BRANCH"
+    - name: Run build script
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        ON_BRANCH=$(git rev-parse --abbrev-ref HEAD)
+        echo "Running on branch $ON_BRANCH"
+            
+        #if [[ ${{ github.event.inputs.dry_run }} == "true" ]]; then
+        #    echo "Dry run enabled. Will skip this step"
+        #else
+        #    ON_BRANCH=$(git rev-parse --abbrev-ref HEAD)
+        #    echo "Running on branch $ON_BRANCH"
+        #    echo "Build script will run here with version $BUILD_VERSION"
+        #fi        
+    - name: Post-build version commits
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        ON_BRANCH=$(git rev-parse --abbrev-ref HEAD)
+        echo "Running on branch $ON_BRANCH"
+        
+        #if [[ ${{ github.event.inputs.dry_run }} == "true" ]]; then
+        #    echo "Dry run enabled. Will skip this step"
+        #else      
+        #    ON_BRANCH=$(git rev-parse --abbrev-ref HEAD)
+        #    echo "Running on branch $ON_BRANCH"
+        #    #return to master
+        #    #git checkout master
+        #    #source ci/build_release_candidate.sh        
+        #    #postBuildActions $BRANCH
+        #fi       
+        
