@@ -100,17 +100,16 @@ jobs:
         buildVersion=$(getNextVersion $BRANCH $final)
 
         buildVersion="$(echo "$buildVersion" | tr -d '\n\r')"
-        echo "BUILD_VERSION=$buildVersion" >> $GITHUB_ENV
-                
-        echo "::set-output name=branch::$BRANCH"        
+        echo "BUILD_VERSION=$buildVersion" >> $GITHUB_ENV   
+
         echo "::set-output name=buildVersion::$BUILD_VERSION"
         
   build:
     needs: release-candidate
     uses: ./.github/workflows/build-specific-version.yml
     with:
-      branch: ${{ needs.release-candidate.outputs.branch }}
-      buildVersion: ${{ needs.release-candidate.outputs.buildVersion }}
+      build_base: 'next'
+      version: ${{ needs.release-candidate.outputs.buildVersion }}
   #build:
   #  runs-on: ubuntu-latest
   #  steps:

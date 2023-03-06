@@ -3,10 +3,10 @@ name: 3 Build custom version
 on:
   workflow_call:
     inputs:
-      branch:
+      build_base:
         type: string
         required: true
-      buildVersion:
+      version:
         type: string
         required: true        
   workflow_dispatch:
@@ -48,8 +48,8 @@ jobs:
     - name: GIT check for branch
       run: |
         echo "Event: ${{ github.event_name }}"
-        echo "${{ inputs.branch }}"
-        echo "${{ inputs.buildVersion }}"
+        echo "${{ inputs.build_base }}"
+        echo "${{ inputs.version }}"
         
         if [[ "${{ github.event_name }}" == 'workflow_dispatch' ]]; then 
             if [[ "${{ github.event.inputs.build_base }}" == "current version on master" ]]; then
