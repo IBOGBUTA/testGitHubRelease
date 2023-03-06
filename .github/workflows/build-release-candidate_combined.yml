@@ -103,6 +103,7 @@ jobs:
         echo "BUILD_VERSION=$buildVersion" >> $GITHUB_ENV
         
   build:
+    steps:
     - name: Check for build workflow
       run: |
         res=$(ls -l ./.github/workflows/build-specific-version.yml)
