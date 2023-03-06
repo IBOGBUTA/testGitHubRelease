@@ -120,7 +120,7 @@ jobs:
     runs-on: ubuntu-latest
     steps: 
       - name: Get build return code
-      - run: |
+        run: |
             echo "Return code of the build job was $?"
             
   #build:
