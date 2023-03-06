@@ -105,8 +105,8 @@ jobs:
         buildVersion="$(echo "$buildVersion" | tr -d '\n\r')"
         echo "BUILD_VERSION=$buildVersion" >> $GITHUB_ENV   
         
-        echo "buildVersion=$BUILD_VERSION" >> $GITHUB_OUTPUT 
-        echo $GITHUB_OUTPUT
+        echo "buildVersion=$buildVersion" >> $GITHUB_OUTPUT 
+        eccho "Ready for $buildVersion"
         
   build:
     needs: release-candidate
