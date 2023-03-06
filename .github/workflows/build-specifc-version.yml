@@ -39,6 +39,8 @@ jobs:
         git config --global user.name "Glaucio Czekailo"
     - name: GIT check for branch
       run: |
+        echo "If script was called with a parameter we should see a branch name here: $1"
+        
         if [[ "${{ github.event.inputs.build_base }}" == "current version on master" ]]; then
             echo "Will use latest version on master for build"
             

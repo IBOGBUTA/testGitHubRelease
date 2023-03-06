@@ -102,6 +102,7 @@ jobs:
         buildVersion="$(echo "$buildVersion" | tr -d '\n\r')"
         echo "BUILD_VERSION=$buildVersion" >> $GITHUB_ENV
     - name: Run build script
+      id: build_step
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
@@ -111,6 +112,7 @@ jobs:
             ON_BRANCH=$(git rev-parse --abbrev-ref HEAD)
             echo "Running on branch $ON_BRANCH"
             echo "Build script will run here with version $BUILD_VERSION"
+            ./build-specific-version.yml $BUILD_VERSION
         fi        
     - name: Post-build version commits
       env:
