@@ -48,14 +48,17 @@ jobs:
     - name: GIT check for branch
       run: |       
         CALLED_VIA_BUILDRC=false
+        CHECKOUT_FROM=""
         
         if [[ "${{ inputs.build_base }}" == "current version on master" ]]; then
-            echo "Will use latest version on master for build"            
+            echo "Will use latest version on master for build"
+            CHECKOUT_FROM="master"
         elif [[ "${{ inputs.build_base }}" == "current version on branch" ]]; then
             BRANCH="VERSION-${{ inputs.version }}"
             if git ls-remote --exit-code --heads origin $BRANCH >/dev/null 2>&1; then
                 echo "Git branch '$BRANCH' exists in the remote repository"
                 echo "Will use latest version on branch $BRANCH"
+                CHECKOUT_FROM="$BRANCH"
             else
                 echo "Error: Git branch '$BRANCH' does not exists in the remote repository"    
                 exit 1
@@ -65,6 +68,7 @@ jobs:
             if git ls-remote --exit-code --tags --heads origin refs/tags/$TAG >/dev/null 2>&1; then
                 echo "Git tag '$TAG' exists in the remote repository"
                 echo "Will checkout and use tag $TAG for build"
+                CHECKOUT_FROM="$TAG"
             else
                 echo "Error: Git tag '$TAG' does not exists in the remote repository"    
                 exit 1
@@ -80,6 +84,7 @@ jobs:
         fi
         
         echo "CALLED_VIA_BUILDRC=$CALLED_VIA_BUILDRC" >> $GITHUB_ENV 
+        echo "CHECKOUT_FROM=$CHECKOUT_FROM" >> $GITHUB_ENV 
         
     - name: Pre-build version preparation
       env:
@@ -98,7 +103,8 @@ jobs:
             fi
         else
             echo "Workflow called via GitHub Action UI"
-            
+            git checkout CHECKOUT_FROM
+            echo "Will continue build from here"
         fi
         
     - name: Run build script
