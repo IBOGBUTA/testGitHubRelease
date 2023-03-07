@@ -118,10 +118,25 @@ jobs:
   update-tags-versions:
     needs: build
     runs-on: ubuntu-latest
-    steps: 
-      - name: Get build return code
-        run: |
-            echo "Return code of the build job was $?"
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+    - name: Install Git
+      run: sudo apt-get update && sudo apt-get install -y git
+    - name: Update version in Git
+        env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        buildRC=$?
+        if [[ "$buildRC" == "0" ]]; then
+          echo "Will update the following ${{ needs.release-candidate.outputs.buildVersion }}"
+        else
+          echo "Return code of the build job was $?"
+          exit $buildRC
+        fi
+            
             
   #build:
   #  runs-on: ubuntu-latest
