@@ -80,6 +80,7 @@ jobs:
         if [[ "$CALLED_VIA_BUILDRC" == "true" ]]; then
             source ci/build_release_candidate.sh
             if [[ "${{ inputs.build_base }}" == "final" ]]; then
+                echo "Will build final release"
                 buildPreparation "${{ inputs.version }}" final
             else
                 buildPreparation "${{ inputs.version }}"
