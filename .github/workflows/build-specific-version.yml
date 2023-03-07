@@ -103,7 +103,7 @@ jobs:
             fi
         else
             echo "Workflow called via GitHub Action UI"
-            git checkout CHECKOUT_FROM
+            git checkout $CHECKOUT_FROM
             echo "Will continue build from here"
         fi
         
