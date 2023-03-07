@@ -65,7 +65,9 @@ jobs:
         else
             echo "Unknown option. Will exit."
             exit 1
-        fi  
+        fi
+        
+        echo "CALLED_VIA_BUILDRC=$CALLED_VIA_BUILDRC" >> $GITHUB_ENV 
         
     - name: Pre-build version preparation
       env:
