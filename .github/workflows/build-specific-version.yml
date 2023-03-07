@@ -48,14 +48,14 @@ jobs:
     - name: GIT check for branch
       run: |       
         CALLED_VIA_BUILDRC=false
-        set -e
+        
         if [[ "${{ inputs.build_base }}" == "current version on master" ]]; then
             echo "Will use latest version on master for build"            
         elif [[ "${{ inputs.build_base }}" == "current version on branch" ]]; then
             BRANCH="VERSION-${{ inputs.version }}"            
-            git ls-remote --exit-code --heads origin $BRANCH >/dev/null 2>&1
-            EXIT_CODE=$?
-            if [[ $EXIT_CODE == '0' ]]; then
+            #git ls-remote --exit-code --heads origin $BRANCH >/dev/null 2>&1
+            #EXIT_CODE=$?
+            if git ls-remote --exit-code --heads origin $BRANCH >/dev/null 2>&1; then
                 echo "Git branch '$BRANCH' exists in the remote repository"
                 echo "Will use latest version on branch $BRANCH"
             else
