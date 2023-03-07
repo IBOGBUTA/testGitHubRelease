@@ -203,6 +203,18 @@ function postBuildActions() {
     	branch_name="$1"
 	fi
 	
+	# Get the release type of this new candidate
+	# Check if the second argument exists
+	if [ -z "$2" ]; then
+		release_type="rc"
+	else
+		release_type="$2"
+		if [[ "$release_type" != "final" ]]; then
+			echo "Error: Release type argument can be empty or 'final'"
+			exit 1
+		fi
+	fi
+	
 	#switch to the release branch and continue
 	git fetch
 	git checkout $branch_name
@@ -211,7 +223,7 @@ function postBuildActions() {
 	tag=$(git describe --tags --abbrev=0) 
 	
 	isHF=false
-	# get the major, minor, patch, RC and HF on else branch 
+	# get the major, minor, patch, RC and HF on branch 
 	if [[ $tag =~ ([0-9]+)\.([0-9]+)\.([0-9]+)-RC([0-9]+) ]]; then
 		major=${BASH_REMATCH[1]}
 		minor=${BASH_REMATCH[2]}
@@ -224,10 +236,43 @@ function postBuildActions() {
 		hf=${BASH_REMATCH[4]}
 		rc=${BASH_REMATCH[5]}
 		isHF=true;
+	elif [[ $tag =~ ([0-9]+)\.([0-9]+)\.([0-9]+) && "$release_type" == "final" ]]; then
+		major=${BASH_REMATCH[1]}
+		minor=${BASH_REMATCH[2]}
+		patch=${BASH_REMATCH[3]}
+	elif [[ $tag =~ ([0-9]+)\.([0-9]+)\.([0-9]+)-HF([0-9]+) && "$release_type" == "final" ]]; then
+		major=${BASH_REMATCH[1]}
+		minor=${BASH_REMATCH[2]}
+		patch=${BASH_REMATCH[3]}
+		hf=${BASH_REMATCH[4]}		
+		isHF=true;
 	else
 		echo "Error: tag ($tag) is not in the correct format" >&2
 		exit 1
 	fi
+	
+	# Setup RC tag for the build that just finished
+	new_rc_version="${major}.${minor}.${patch}"
+	if [ "$isHF" = false ]; then
+		if [[ "$release_type" == "final" ]]; then
+			new_rc_qualifier=""
+		else
+			new_rc_qualifier="-RC$rc"
+		fi
+	else
+		if [[ "$release_type" == "final" ]]; then
+			new_rc_qualifier="-HF$hf"
+		else
+			new_rc_qualifier="-HF$hf-RC$rc"
+		fi
+	fi
+	
+	# Update the Maven version in the maven.config file
+	updateMavenConfig "$new_rc_version" "$new_rc_qualifier"	
+	echo "2. will update .mvn/maven.config on branch to $new_rc_version and $new_rc_qualifier"
+	git diff --exit-code --quiet .mvn/maven.config || git commit -m "Automatic update of version" .mvn/maven.config
+	git tag "$new_rc_version$new_rc_qualifier" "$branch_name"
+	
 	
 	# Setup RC tag name for future development builds on this release branch
 	future_rc_version="${major}.${minor}.${patch}"
@@ -253,14 +298,13 @@ function postBuildActions() {
 	# Update the Maven version in the maven.config file for future RC builds
 	updateMavenConfig "$future_rc_version" "$future_rc_qualifier"
 	echo "5. will update .mvn/maven.config on branch $branch_name to $future_rc_version and $future_rc_qualifier"
-
 	git diff --exit-code --quiet .mvn/maven.config || git commit -m "Automatic update of version" .mvn/maven.config
 	git tag "$future_rc_version$future_rc_qualifier" "$branch_name"
 	echo "6. will commit the .mvn/maven.config changes and  create a tag $future_rc_version$future_rc_qualifier" 
 
 	echo "7. will push the new maven version and tags to $branch_name in the final step"	
-	git push --tags 
-	git push
+	#git push --tags 
+	#git push
 }
 
 function revertIfBuildFails() {

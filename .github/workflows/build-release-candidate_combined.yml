@@ -132,8 +132,17 @@ jobs:
         buildRC=$?
         if [[ "$buildRC" == "0" ]]; then
           echo "Will update the following ${{ needs.release-candidate.outputs.buildVersion }}"
+          BRANCH="VERSION-${{ github.event.inputs.release_branch }}"
+          final=""
+          if [[ ${{ github.event.inputs.final_release }} == "true" ]]; then
+            final="final"
+          fi  
+          #make sure to run on master
+          git checkout master
+          source ci/build_release_candidate.sh 
+          postBuildActions $BRANCH $final
         else
-          echo "Return code of the build job was $?"
+          echo "Error: Return code of the build job was $?"
           exit $buildRC
         fi
             
