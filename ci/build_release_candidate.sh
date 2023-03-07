@@ -292,7 +292,138 @@ function buildPreparation() {
 	echo "Version files are ready. Build can continue."	
 }
 
-function postBuildActions() {	
+function postBuildActions() {
+	# Check if the current branch name matches the pattern master
+	BRANCH=$(git rev-parse --abbrev-ref HEAD)
+	if [[ ! $BRANCH =~ ^master$ ]]; then
+	  echo "Error: postBuildActions() can be called only from the master."
+	  exit 1
+	fi
+	
+	# Get the version of the new build
+	# Check if the argument exists
+	if [ -z "$1" ]; then
+    	echo "Error: Version argument is missing"
+		exit 1
+	else
+    	version="$1"
+	fi
+	
+	# Get the release type of this new candidate
+	# Check if the second argument exists
+	if [ -z "$2" ]; then
+		release_type="rc"
+	else
+		release_type="$2"
+		if [[ "$release_type" != "final" ]]; then
+			echo "Error: Release type argument can be empty or 'final'"
+			exit 1
+		fi
+	fi
+	
+	isHF=false
+	# get the major, minor, patch, RC and HF on branch 
+	if [[ $version =~ ([0-9]+)\.([0-9]+)\.([0-9]+)-RC([0-9]+)$ ]]; then
+		echo "Request is to build new release candidate with version: $version"
+		major=${BASH_REMATCH[1]}
+		minor=${BASH_REMATCH[2]}
+		patch=${BASH_REMATCH[3]}
+		rc=${BASH_REMATCH[4]}
+	elif [[ $version =~ ([0-9]+)\.([0-9]+)\.([0-9]+)-HF([0-9]+)-RC([0-9]+)$ ]]; then
+		echo "Request is to build new HF release candidate with version: $version"
+		major=${BASH_REMATCH[1]}
+		minor=${BASH_REMATCH[2]}
+		patch=${BASH_REMATCH[3]}
+		hf=${BASH_REMATCH[4]}
+		rc=${BASH_REMATCH[5]}
+		isHF=true;
+	elif [[ $version =~ ([0-9]+)\.([0-9]+)\.([0-9]+)$ && "$release_type" == "final" ]]; then
+		echo "Request is to build final release with version: $version"
+		major=${BASH_REMATCH[1]}
+		minor=${BASH_REMATCH[2]}
+		patch=${BASH_REMATCH[3]}
+	elif [[ $version =~ ([0-9]+)\.([0-9]+)\.([0-9]+)-HF([0-9]+)$ && "$release_type" == "final" ]]; then
+		echo "Request is to build final HF release with version: $version"
+		major=${BASH_REMATCH[1]}
+		minor=${BASH_REMATCH[2]}
+		patch=${BASH_REMATCH[3]}
+		hf=${BASH_REMATCH[4]}		
+		isHF=true;
+	else
+		echo "Error: Version ($version) is not in the correct format" >&2
+		exit 1
+	fi
+	
+	branch_name="VERSION-${major}.${minor}.${patch}"	
+    git ls-remote --exit-code --heads origin $branch_name >/dev/null 2>&1
+    EXIT_CODE=$?
+    if [[ $EXIT_CODE != '0' ]]; then
+		echo "Error: Git branch '$branch_name' does not exist in the remote repository"
+		exit 1
+	fi
+	
+	git fetch
+	git checkout $branch_name
+	git fetch --tags
+	
+	# Setup RC tag for the build that just finished
+	new_rc_version="${major}.${minor}.${patch}"
+	if [ "$isHF" == "false" ]; then
+		if [[ "$release_type" == "final" ]]; then
+			new_rc_qualifier=""
+		else
+			new_rc_qualifier="-RC$rc"
+		fi
+	else
+		if [[ "$release_type" == "final" ]]; then
+			new_rc_qualifier="-HF$hf"
+		else
+			new_rc_qualifier="-HF$hf-RC$rc"
+		fi
+	fi
+	
+	# Update the Maven version in the maven.config file
+	updateMavenConfig "$new_rc_version" "$new_rc_qualifier"	
+	echo "2. will update .mvn/maven.config on branch to $new_rc_version and $new_rc_qualifier"
+	git diff --exit-code --quiet .mvn/maven.config || git commit -m "Automatic update of version" .mvn/maven.config
+	git tag "$new_rc_version$new_rc_qualifier" "$branch_name"
+	
+	
+	# Setup RC tag name for future development builds on this release branch
+	future_rc_version="${major}.${minor}.${patch}"
+	if [[ "$release_type" == "final" ]]; then
+		rc="1"
+	else
+		((rc++))
+	fi	
+
+	if [ "$isHF" == "false" ]; then
+		if [[ "$release_type" == "final" ]]; then
+			future_rc_qualifier="-HF1-RC$rc-SNAPSHOT"
+		else 
+			future_rc_qualifier="-RC$rc-SNAPSHOT"
+		fi	
+	else
+		if [[ "$release_type" == "final" ]]; then
+			((hf++))
+		fi
+		future_rc_qualifier="-HF$hf-RC$rc-SNAPSHOT"
+	fi	
+	
+	# Update the Maven version in the maven.config file for future RC builds
+	updateMavenConfig "$future_rc_version" "$future_rc_qualifier"
+	echo "5. will update .mvn/maven.config on branch $branch_name to $future_rc_version and $future_rc_qualifier"
+	git diff --exit-code --quiet .mvn/maven.config || git commit -m "Automatic update of version" .mvn/maven.config
+	git tag "$future_rc_version$future_rc_qualifier" "$branch_name"
+	echo "6. will commit the .mvn/maven.config changes and  create a tag $future_rc_version$future_rc_qualifier" 
+
+	echo "7. will push the new maven version and tags to $branch_name in the final step"	
+	#git push --tags 
+	#git push
+	
+}
+
+function postBuildActions2() {	
 	# Check if the current branch name matches the pattern master
 	BRANCH=$(git rev-parse --abbrev-ref HEAD)
 	if [[ ! $BRANCH =~ ^master$ ]]; then
