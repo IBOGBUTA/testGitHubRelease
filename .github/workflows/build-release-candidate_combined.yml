@@ -99,7 +99,6 @@ jobs:
         buildVersion=$(getNextVersion $BRANCH $final)
 
         buildVersion="$(echo "$buildVersion" | tr -d '\n\r')"
-        echo "BUILD_VERSION=$buildVersion" >> $GITHUB_ENV   
         
         echo "buildVersion=$buildVersion" >> $GITHUB_OUTPUT 
         
@@ -110,8 +109,15 @@ jobs:
         fi
         echo "Ready for $buildVersion"
         
-        echo "Dry run? Answer: ${{ github.event.inputs.dry_run }}"
-        
+        if [[ ${{ github.event.inputs.dry_run }} == true ]]; then
+            echo "This was a dry run. Here are the details: "
+            echo "- Branch where the build will be done:        $BRANCH"
+            echo "- Version that will be built:                 $buildVersion"
+            echo "- Will it be a final stable build:            ${{ github.event.inputs.final_release }}"
+            echo "- Restrictions for this build:                ${{ github.event.inputs.build_restrictions }}"
+        else
+            echo "Build will continue for version: $buildVersion"
+        fi        
   build:
     if: ${{ github.event.inputs.dry_run == false }}
     needs: prepare-release-candidate
