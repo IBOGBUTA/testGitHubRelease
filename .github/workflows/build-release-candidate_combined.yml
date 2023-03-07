@@ -1,4 +1,4 @@
-name: 2 Build next Release Candidate
+name: 2 Build Next Release Candidate
 
 on:
   workflow_dispatch:
@@ -106,7 +106,7 @@ jobs:
         if [[ "$final" == "final" ]]; then 
             echo "rc=$final" >> $GITHUB_OUTPUT
         else
-            echo "rc='next'" >> $GITHUB_OUTPUT
+            echo "rc=next" >> $GITHUB_OUTPUT
         fi
         echo "Ready for $buildVersion"
         
