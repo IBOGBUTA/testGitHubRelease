@@ -218,11 +218,13 @@ function buildPreparation() {
 	isHF=false
 	# get the major, minor, patch, RC and HF on branch 
 	if [[ $version =~ ([0-9]+)\.([0-9]+)\.([0-9]+)-RC([0-9]+) ]]; then
+		echo "Request is to build new release candidate with version: $version"
 		major=${BASH_REMATCH[1]}
 		minor=${BASH_REMATCH[2]}
 		patch=${BASH_REMATCH[3]}
 		rc=${BASH_REMATCH[4]}
 	elif [[ $version =~ ([0-9]+)\.([0-9]+)\.([0-9]+)-HF([0-9]+)-RC([0-9]+) ]]; then
+		echo "Request is to build new HF release candidate with version: $version"
 		major=${BASH_REMATCH[1]}
 		minor=${BASH_REMATCH[2]}
 		patch=${BASH_REMATCH[3]}
@@ -230,10 +232,12 @@ function buildPreparation() {
 		rc=${BASH_REMATCH[5]}
 		isHF=true;
 	elif [[ $version =~ ([0-9]+)\.([0-9]+)\.([0-9]+) && "$release_type" == "final" ]]; then
+		echo "Request is to build final release with version: $version"
 		major=${BASH_REMATCH[1]}
 		minor=${BASH_REMATCH[2]}
 		patch=${BASH_REMATCH[3]}
 	elif [[ $version =~ ([0-9]+)\.([0-9]+)\.([0-9]+)-HF([0-9]+) && "$release_type" == "final" ]]; then
+		echo "Request is to build final HF release with version: $version"
 		major=${BASH_REMATCH[1]}
 		minor=${BASH_REMATCH[2]}
 		patch=${BASH_REMATCH[3]}
