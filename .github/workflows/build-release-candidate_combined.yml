@@ -111,7 +111,7 @@ jobs:
         echo "Ready for $buildVersion"
         
   build:
-    needs: release-candidate
+    needs: prepare-release-candidate
     uses: ./.github/workflows/build-specific-version.yml
     with:
       build_base: '${{ needs.prepare-release-candidate.outputs.rc }}'
