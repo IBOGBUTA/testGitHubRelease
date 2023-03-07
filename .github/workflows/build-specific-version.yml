@@ -66,13 +66,15 @@ jobs:
             TAG="${{ inputs.version }}"
             git ls-remote --exit-code --tags --heads origin refs/tags/$TAG >/dev/null 2>&1
             EXIT_CODE=$?
-            if [[ $EXIT_CODE == '0' ]]; then
-                echo "Git tag '$TAG' exists in the remote repository"
-                echo "Will checkout and use tag $TAG for build"
-            else
-                echo "Error: Git tag '$TAG' does not exists in the remote repository"    
-                exit 1
-            fi
+            echo "RC = $EXIT_CODE"
+            exit 1
+            #if [[ $EXIT_CODE == '0' ]]; then
+            #    echo "Git tag '$TAG' exists in the remote repository"
+            #    echo "Will checkout and use tag $TAG for build"
+            #else
+            #    echo "Error: Git tag '$TAG' does not exists in the remote repository"    
+            #    exit 1
+            #fi
         elif [[ "${{ inputs.build_base }}" == "next" || "${{ inputs.build_base }}" == "final" ]]; then
             #hidden value 
             echo "Workflow was called from Build Release Candidate"  
