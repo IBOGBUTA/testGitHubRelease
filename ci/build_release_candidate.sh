@@ -258,16 +258,23 @@ function buildPreparation() {
 	
 	# Setup RC tag for the build that just finished
 	new_rc_version="${major}.${minor}.${patch}"
+	echo "Prepare qualifier"
 	if [ "$isHF" == "false" ]; then
+		echo "We have a new release"
 		if [[ "$release_type" == "final" ]]; then
+			echo "it is a final release"
 			new_rc_qualifier=""
 		else
+			echo "it is a new release candidate"
 			new_rc_qualifier="-RC$rc"
 		fi
 	else
+		echo "We have a new hotfix"
 		if [[ "$release_type" == "final" ]]; then
+			echo "it is a final HF"
 			new_rc_qualifier="-HF$hf"
 		else
+			echo "it is a new hotfix release candidate"
 			new_rc_qualifier="-HF$hf-RC$rc"
 		fi
 	fi
