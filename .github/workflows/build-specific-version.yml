@@ -116,6 +116,9 @@ jobs:
         ON_BRANCH=$(git rev-parse --abbrev-ref HEAD)
         echo "Running on branch $ON_BRANCH"
         
+        #Just a temporary check here
+        git status
+        
     - name: Post-build upload
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
