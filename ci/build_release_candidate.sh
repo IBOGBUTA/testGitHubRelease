@@ -186,6 +186,101 @@ function preBuildPreparation() {
 	git push
 }
 
+function buildPreparation() {
+	# Check if the current branch name matches the pattern master
+	BRANCH=$(git rev-parse --abbrev-ref HEAD)
+	if [[ ! $BRANCH =~ ^master$ ]]; then
+	  echo "Error: postBuildActions() can be called only from the master."
+	  exit 1
+	fi
+	
+	# Get the version of the new build
+	# Check if the argument exists
+	if [ -z "$1" ]; then
+    	echo "Error: Version argument is missing"
+		exit 1
+	else
+    	version="$1"
+	fi
+	
+	# Get the release type of this new candidate
+	# Check if the second argument exists
+	if [ -z "$2" ]; then
+		release_type="rc"
+	else
+		release_type="$2"
+		if [[ "$release_type" != "final" ]]; then
+			echo "Error: Release type argument can be empty or 'final'"
+			exit 1
+		fi
+	fi
+	
+	isHF=false
+	# get the major, minor, patch, RC and HF on branch 
+	if [[ $version =~ ([0-9]+)\.([0-9]+)\.([0-9]+)-RC([0-9]+) ]]; then
+		major=${BASH_REMATCH[1]}
+		minor=${BASH_REMATCH[2]}
+		patch=${BASH_REMATCH[3]}
+		rc=${BASH_REMATCH[4]}
+	elif [[ $version =~ ([0-9]+)\.([0-9]+)\.([0-9]+)-HF([0-9]+)-RC([0-9]+) ]]; then
+		major=${BASH_REMATCH[1]}
+		minor=${BASH_REMATCH[2]}
+		patch=${BASH_REMATCH[3]}
+		hf=${BASH_REMATCH[4]}
+		rc=${BASH_REMATCH[5]}
+		isHF=true;
+	elif [[ $version =~ ([0-9]+)\.([0-9]+)\.([0-9]+) && "$release_type" == "final" ]]; then
+		major=${BASH_REMATCH[1]}
+		minor=${BASH_REMATCH[2]}
+		patch=${BASH_REMATCH[3]}
+	elif [[ $version =~ ([0-9]+)\.([0-9]+)\.([0-9]+)-HF([0-9]+) && "$release_type" == "final" ]]; then
+		major=${BASH_REMATCH[1]}
+		minor=${BASH_REMATCH[2]}
+		patch=${BASH_REMATCH[3]}
+		hf=${BASH_REMATCH[4]}		
+		isHF=true;
+	else
+		echo "Error: Version ($version) is not in the correct format" >&2
+		exit 1
+	fi
+	
+	branch_name="VERSION-${major}.${minor}.${patch}"	
+    git ls-remote --exit-code --heads origin $branch_name >/dev/null 2>&1
+    EXIT_CODE=$?
+    if [[ $EXIT_CODE != '0' ]]; then
+		echo "Error: Git branch '$branch_name' does not exist in the remote repository"
+		exit 1
+	fi
+	
+	git fetch
+	git checkout $branch_name
+	git fetch --tags
+	
+	# Setup RC tag for the build that just finished
+	new_rc_version="${major}.${minor}.${patch}"
+	if [ "$isHF" = false ]; then
+		if [[ "$release_type" == "final" ]]; then
+			new_rc_qualifier=""
+		else
+			new_rc_qualifier="-RC$rc"
+		fi
+	else
+		if [[ "$release_type" == "final" ]]; then
+			new_rc_qualifier="-HF$hf"
+		else
+			new_rc_qualifier="-HF$hf-RC$rc"
+		fi
+	fi
+	
+	# Update the Maven version in the maven.config file
+	updateMavenConfig "$new_rc_version" "$new_rc_qualifier"	
+	echo "2. will update .mvn/maven.config on branch to $new_rc_version and $new_rc_qualifier"
+		
+	# Update Helm Charts
+
+	echo "Version files are ready. Build can continue."	
+}
+
 function postBuildActions() {	
 	# Check if the current branch name matches the pattern master
 	BRANCH=$(git rev-parse --abbrev-ref HEAD)

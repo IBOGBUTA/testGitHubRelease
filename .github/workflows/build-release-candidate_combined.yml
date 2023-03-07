@@ -25,10 +25,11 @@ on:
         type: boolean
         description: 'Dry run(no build, no commits, just check for next version)'
 jobs:
-  release-candidate:
+  prepare-release-candidate:
     runs-on: ubuntu-latest
     outputs: 
       buildVersion: ${{ steps.prebuild.outputs.buildVersion }}
+      rc: ${{ steps.prebuild.outputs.rc }}
     steps:
     - name: Checkout code
       uses: actions/checkout@v2
@@ -36,11 +37,6 @@ jobs:
         token: ${{ secrets.GITHUB_TOKEN }}
     - name: Install Git
       run: sudo apt-get update && sudo apt-get install -y git
-    - name: Install Maven
-      uses: actions/setup-java@v1
-      with:
-        java-version: '8'
-        distribution: 'adopt'
     - name: GIT comitter configuration
       run: |
         git config --global user.email "glaucio.porcidesczekailo@atos.net"
@@ -106,17 +102,23 @@ jobs:
         echo "BUILD_VERSION=$buildVersion" >> $GITHUB_ENV   
         
         echo "buildVersion=$buildVersion" >> $GITHUB_OUTPUT 
+        
+        if [[ "$final" == "final" ]]; then 
+            echo "rc=$final" >> $GITHUB_OUTPUT
+        else
+            echo "rc='next'" >> $GITHUB_OUTPUT
+        fi
         echo "Ready for $buildVersion"
         
   build:
     needs: release-candidate
     uses: ./.github/workflows/build-specific-version.yml
     with:
-      build_base: 'next'
-      version: '${{ needs.release-candidate.outputs.buildVersion }}'
+      build_base: '${{ needs.prepare-release-candidate.outputs.rc }}'
+      version: '${{ needs.prepare-release-candidate.outputs.buildVersion }}'
       
   update-tags-versions:
-    needs: [release-candidate, build]
+    needs: [prepare-release-candidate, build]
     runs-on: ubuntu-latest
     steps:
     - name: Checkout code
@@ -135,7 +137,7 @@ jobs:
       run: |
         buildRC=$?
         if [[ "$buildRC" == "0" ]]; then
-          echo "Will update the following ${{ needs.release-candidate.outputs.buildVersion }}"
+          echo "Will update the following ${{ needs.prepare-release-candidate.outputs.buildVersion }}"
           BRANCH="VERSION-${{ github.event.inputs.release_branch }}"
           final=""
           if [[ ${{ github.event.inputs.final_release }} == "true" ]]; then
@@ -148,48 +150,4 @@ jobs:
         else
           echo "Error: Return code of the build job was $?"
           exit $buildRC
-        fi
-            
-            
-  #build:
-  #  runs-on: ubuntu-latest
-  #  steps:
-  #    - name: Checkout repository
-  #      uses: actions/checkout@v2
-  #    - name: List files
-  #      run: ls ./.github/workflows/build-specific-version.yml
-  #    - name: Run build-specific-version
-  #      uses: ./.github/workflows/build-specific-version.yml
-  #      with:
-  #        build_base: "current version on branch"
-  #        version: "${{ github.event.inputs.release_branch }}"  
-  #  
-    
-    #- name: Run build script
-    #  id: build_step
-    #  env:
-    #    GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-    #  run: |
-    #    if [[ ${{ github.event.inputs.dry_run }} == "true" ]]; then
-    #        echo "Dry run enabled. Will skip this step"
-    #    else
-    #        ON_BRANCH=$(git rev-parse --abbrev-ref HEAD)
-    #        echo "Running on branch $ON_BRANCH"
-    #        echo "Build script will run here with version $BUILD_VERSION"
-    #        ./build-specific-version.yml $BUILD_VERSION
-    #    fi        
-    #- name: Post-build version commits
-    #  env:
-    #    GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-    #  run: |
-    #    if [[ ${{ github.event.inputs.dry_run }} == "true" ]]; then
-    #        echo "Dry run enabled. Will skip this step"
-    #    else      
-    #        ON_BRANCH=$(git rev-parse --abbrev-ref HEAD)
-    #        echo "Running on branch $ON_BRANCH"
-    #        #return to master
-    #        #git checkout master
-    #        #source ci/build_release_candidate.sh        
-    #        #postBuildActions $BRANCH
-    #    fi       
-        
+        fi        

@@ -47,6 +47,8 @@ jobs:
         git config --global user.name "Glaucio Czekailo"
     - name: GIT check for branch
       run: |       
+        CALLED_VIA_BUILDRC=false
+        
         if [[ "${{ inputs.build_base }}" == "current version on master" ]]; then
             echo "Will use latest version on master for build"            
         elif [[ "${{ inputs.build_base }}" == "current version on branch" ]]; then
@@ -55,9 +57,10 @@ jobs:
         elif [[ "${{ inputs.build_base }}" == "specific version(tag)" ]]; then
             TAG="${{ inputs.version }}"
             echo "Will checkout and use the following tag $TAG" 
-        elif [[ "${{ inputs.build_base }}" == "next" ]]; then
+        elif [[ "${{ inputs.build_base }}" == "next" || "${{ inputs.build_base }}" == "final" ]]; then
             #hidden value 
-            echo "Workflow was called from Build Release Candidate"            
+            echo "Workflow was called from Build Release Candidate"  
+            CALLED_VIA_BUILDRC=true
             echo "Will build ${{ inputs.version }}"
         else
             echo "Unknown option. Will exit."
@@ -71,21 +74,26 @@ jobs:
         git remote set-url origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/$GITHUB_REPOSITORY         
         ON_BRANCH=$(git rev-parse --abbrev-ref HEAD)
         echo "Running on branch $ON_BRANCH"
+        
+        if [[ "$CALLED_VIA_BUILDRC" == "true" ]]; then
+            source ci/build_release_candidate.sh
+            if [[ "${{ inputs.build_base }}" == "final" ]]; then
+                buildPreparation "{{ inputs.version }}" final
+            else
+                buildPreparation "{{ inputs.version }}"           
+            fi
+        else
+            echo "Workflow called via GitHub Action UI"
+        fi
+        
     - name: Run build script
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
         ON_BRANCH=$(git rev-parse --abbrev-ref HEAD)
         echo "Running on branch $ON_BRANCH"
-            
-        #if [[ ${{ github.event.inputs.dry_run }} == "true" ]]; then
-        #    echo "Dry run enabled. Will skip this step"
-        #else
-        #    ON_BRANCH=$(git rev-parse --abbrev-ref HEAD)
-        #    echo "Running on branch $ON_BRANCH"
-        #    echo "Build script will run here with version $BUILD_VERSION"
-        #fi        
-    - name: Post-build version commits
+        
+    - name: Post-build upload
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
@@ -93,14 +101,5 @@ jobs:
         echo "Running on branch $ON_BRANCH"
         
                 
-        #if [[ ${{ github.event.inputs.dry_run }} == "true" ]]; then
-        #    echo "Dry run enabled. Will skip this step"
-        #else      
-        #    ON_BRANCH=$(git rev-parse --abbrev-ref HEAD)
-        #    echo "Running on branch $ON_BRANCH"
-        #    #return to master
-        #    #git checkout master
-        #    #source ci/build_release_candidate.sh        
-        #    #postBuildActions $BRANCH
-        #fi       
+        
         
