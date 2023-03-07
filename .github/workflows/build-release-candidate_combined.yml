@@ -126,7 +126,7 @@ jobs:
     - name: Install Git
       run: sudo apt-get update && sudo apt-get install -y git
     - name: Update version in Git
-        env:
+      env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
         buildRC=$?
