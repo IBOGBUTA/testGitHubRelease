@@ -110,8 +110,10 @@ jobs:
         fi
         echo "Ready for $buildVersion"
         
+        echo "Dry run? Answer: ${{ github.event.inputs.dry_run }}"
+        
   build:
-    if: ${{ github.event.inputs.dry_run == false }}"
+    if: ${{ github.event.inputs.dry_run == "false" }}"
     needs: prepare-release-candidate
     uses: ./.github/workflows/build-specific-version.yml
     with:
@@ -119,7 +121,7 @@ jobs:
       version: '${{ needs.prepare-release-candidate.outputs.buildVersion }}'
       
   update-tags-versions:
-    if: ${{ github.event.inputs.dry_run == false }}"
+    if: ${{ github.event.inputs.dry_run == "false" }}"
     needs: [prepare-release-candidate, build]
     runs-on: ubuntu-latest
     steps:
