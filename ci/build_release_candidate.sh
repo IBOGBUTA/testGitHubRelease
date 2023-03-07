@@ -79,7 +79,7 @@ function getNextVersion() {
 	
 	# Setup RC tag for the upcoming build
 	new_rc_version="${major}.${minor}.${patch}"
-	if [ "$isHF" = false ]; then
+	if [ "$isHF" == "false" ]; then
 		if [[ "$release_type" == "final" ]]; then
 			new_rc_qualifier=""
 		else
@@ -157,7 +157,7 @@ function preBuildPreparation() {
 	
 	# Setup RC tag for the upcoming build
 	new_rc_version="${major}.${minor}.${patch}"
-	if [ "$isHF" = false ]; then
+	if [ "$isHF" == "false" ]; then
 		if [[ "$release_type" == "final" ]]; then
 			new_rc_qualifier=""
 		else
@@ -258,7 +258,7 @@ function buildPreparation() {
 	
 	# Setup RC tag for the build that just finished
 	new_rc_version="${major}.${minor}.${patch}"
-	if [ "$isHF" = false ]; then
+	if [ "$isHF" == "false" ]; then
 		if [[ "$release_type" == "final" ]]; then
 			new_rc_qualifier=""
 		else
@@ -348,7 +348,7 @@ function postBuildActions() {
 	
 	# Setup RC tag for the build that just finished
 	new_rc_version="${major}.${minor}.${patch}"
-	if [ "$isHF" = false ]; then
+	if [ "$isHF" == "false" ]; then
 		if [[ "$release_type" == "final" ]]; then
 			new_rc_qualifier=""
 		else
@@ -377,7 +377,7 @@ function postBuildActions() {
 		((rc++))
 	fi	
 
-	if [ "$isHF" = false ]; then
+	if [ "$isHF" == "false" ]; then
 		if [[ "$release_type" == "final" ]]; then
 			future_rc_qualifier="-HF1-RC$rc-SNAPSHOT"
 		else 
@@ -451,7 +451,7 @@ function revertIfBuildFails() {
 	
 	revert_version="${major}.${minor}.${patch}"
 	
-	if [ "$isHF" = false ]; then
+	if [ "$isHF" == "false" ]; then
 		revert_qualifier="-RC$rc-SNAPSHOT"
 	else
 		revert_qualifier="-HF$hf-RC$rc-SNAPSHOT"
@@ -524,7 +524,7 @@ function oldCode() {
 
 	# Setup RC tag for this build
 	new_rc_version="${major}.${minor}.${patch}"
-	if [ "$isHF" = false ]; then
+	if [ "$isHF" == "false" ]; then
 		if [[ "$release_type" == "final" ]]; then
 			new_rc_qualifier=""
 		else
@@ -546,7 +546,7 @@ function oldCode() {
 		((rc++))
 	fi	
 
-	if [ "$isHF" = false ]; then
+	if [ "$isHF" == "false" ]; then
 		if [[ "$release_type" == "final" ]]; then
 			future_rc_qualifier="-HF1-RC$rc-SNAPSHOT"
 		else 
