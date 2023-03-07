@@ -52,11 +52,27 @@ jobs:
         if [[ "${{ inputs.build_base }}" == "current version on master" ]]; then
             echo "Will use latest version on master for build"            
         elif [[ "${{ inputs.build_base }}" == "current version on branch" ]]; then
-            BRANCH="VERSION-${{ inputs.version }}"
-            echo "Will use latest on branch $BRANCH"            
-        elif [[ "${{ inputs.build_base }}" == "specific version(tag)" ]]; then
+            BRANCH="VERSION-${{ inputs.version }}"            
+            git ls-remote --exit-code --heads origin $BRANCH >/dev/null 2>&1
+            EXIT_CODE=$?
+            if [[ $EXIT_CODE == '0' ]]; then
+                echo "Git branch '$BRANCH' exists in the remote repository"
+                echo "Will use latest version on branch $BRANCH"
+            else
+                echo "Error: Git branch '$BRANCH' does not exists in the remote repository"    
+                exit 1
+            fi                        
+        elif [[ "${{ inputs.build_base }}" == "specific version(tag)" ]]; then      
             TAG="${{ inputs.version }}"
-            echo "Will checkout and use the following tag $TAG" 
+            git ls-remote --exit-code --tags --heads origin refs/tags/$TAG >/dev/null 2>&1
+            EXIT_CODE=$?
+            if [[ $EXIT_CODE == '0' ]]; then
+                echo "Git tag '$TAG' exists in the remote repository"
+                echo "Will checkout and use tag $TAG for build"
+            else
+                echo "Error: Git tag '$TAG' does not exists in the remote repository"    
+                exit 1
+            fi
         elif [[ "${{ inputs.build_base }}" == "next" || "${{ inputs.build_base }}" == "final" ]]; then
             #hidden value 
             echo "Workflow was called from Build Release Candidate"  
@@ -86,6 +102,7 @@ jobs:
             fi
         else
             echo "Workflow called via GitHub Action UI"
+            
         fi
         
     - name: Run build script

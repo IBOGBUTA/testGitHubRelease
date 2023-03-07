@@ -107,8 +107,7 @@ jobs:
         else
             echo "rc=next" >> $GITHUB_OUTPUT
         fi
-        echo "Ready for $buildVersion"
-        
+                
         if [[ ${{ github.event.inputs.dry_run }} == true ]]; then
             echo "This was a dry run. Here are the details: "
             echo "- Branch where the build will be done:        $BRANCH"
