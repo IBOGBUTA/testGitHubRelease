@@ -48,7 +48,7 @@ jobs:
     - name: GIT check for branch
       run: |       
         CALLED_VIA_BUILDRC=false
-        
+        set -e
         if [[ "${{ inputs.build_base }}" == "current version on master" ]]; then
             echo "Will use latest version on master for build"            
         elif [[ "${{ inputs.build_base }}" == "current version on branch" ]]; then
