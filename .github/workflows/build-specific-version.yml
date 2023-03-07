@@ -52,9 +52,7 @@ jobs:
         if [[ "${{ inputs.build_base }}" == "current version on master" ]]; then
             echo "Will use latest version on master for build"            
         elif [[ "${{ inputs.build_base }}" == "current version on branch" ]]; then
-            BRANCH="VERSION-${{ inputs.version }}"            
-            #git ls-remote --exit-code --heads origin $BRANCH >/dev/null 2>&1
-            #EXIT_CODE=$?
+            BRANCH="VERSION-${{ inputs.version }}"
             if git ls-remote --exit-code --heads origin $BRANCH >/dev/null 2>&1; then
                 echo "Git branch '$BRANCH' exists in the remote repository"
                 echo "Will use latest version on branch $BRANCH"
@@ -63,18 +61,14 @@ jobs:
                 exit 1
             fi                        
         elif [[ "${{ inputs.build_base }}" == "specific version(tag)" ]]; then      
-            TAG="${{ inputs.version }}"
-            git ls-remote --exit-code --tags --heads origin refs/tags/$TAG >/dev/null 2>&1
-            EXIT_CODE=$?
-            echo "RC = $EXIT_CODE"
-            exit 1
-            #if [[ $EXIT_CODE == '0' ]]; then
-            #    echo "Git tag '$TAG' exists in the remote repository"
-            #    echo "Will checkout and use tag $TAG for build"
-            #else
-            #    echo "Error: Git tag '$TAG' does not exists in the remote repository"    
-            #    exit 1
-            #fi
+            TAG="${{ inputs.version }}"   
+            if git ls-remote --exit-code --tags --heads origin refs/tags/$TAG >/dev/null 2>&1; then
+                echo "Git tag '$TAG' exists in the remote repository"
+                echo "Will checkout and use tag $TAG for build"
+            else
+                echo "Error: Git tag '$TAG' does not exists in the remote repository"    
+                exit 1
+            fi
         elif [[ "${{ inputs.build_base }}" == "next" || "${{ inputs.build_base }}" == "final" ]]; then
             #hidden value 
             echo "Workflow was called from Build Release Candidate"  
