@@ -71,7 +71,7 @@ jobs:
             else
                 echo "Build can continue"
             fi                     
-        elif [[ $EXIT_CODE == '2' ]]; then
+        else
             echo "Git branch '$BRANCH' does not exist in the remote repository"
             exit 1
         fi

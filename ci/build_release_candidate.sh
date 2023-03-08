@@ -418,8 +418,8 @@ function postBuildActions() {
 	echo "6. will commit the .mvn/maven.config changes and  create a tag $future_rc_version$future_rc_qualifier" 
 
 	echo "7. will push the new maven version and tags to $branch_name in the final step"	
-	#git push --tags 
-	#git push
+	git push --tags 
+	git push
 	
 }
 
