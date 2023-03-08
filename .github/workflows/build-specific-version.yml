@@ -1,4 +1,4 @@
-name: 3 Build custom version
+name: 3 Build Custom Version
 
 on:
   workflow_call:
