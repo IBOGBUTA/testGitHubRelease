@@ -3,12 +3,17 @@
 # Description:
 ### This script can run only on master branch
 
+source common_release_functions.sh
+git checkout VERSION-3.0.0
+runningOnMaster && { echo "Called from master. Script can continue."; } || { echo "Error: You should create a RC branch from the master branch."; exit 1; }
+git checkout master
+
 # Check if the current branch name matches the pattern master
-branch_name=$(git rev-parse --abbrev-ref HEAD)
-if [[ ! $branch_name =~ ^master$ ]]; then
-  echo "Error: You should create a RC branch from the master branch."
-  exit 1
-fi
+#branch_name=$(git rev-parse --abbrev-ref HEAD)
+#if [[ ! $branch_name =~ ^master$ ]]; then
+#  echo "Error: You should create a RC branch from the master branch."
+#  exit 1
+#fi
 
 # Get the release type of this new branch
 # Check if the first argument exists
@@ -121,7 +126,6 @@ git tag "$new_master_version$new_master_qualifier" master
 echo "10. will commit the .mvn/maven.config changes and  create a tag $new_master_version$new_master_qualifier" 
 
 #git push origin master
-git push --tags #not recommended
-git push
+#git push --tags #not recommended
+#git push
 echo "11. will push changes to master"
-
