@@ -28,7 +28,7 @@ else
 fi
 
 # get the latest tag
-git fetch --tags
+git fetch --tags >/dev/null 2>&1
 tag=$(git tag --sort=-v:refname | grep -E $TAG_FORMAT_ON_MASTER | head -n1)
 
 # get the major, minor, and patch
@@ -85,12 +85,12 @@ git diff --exit-code --quiet .mvn/maven.config || git commit -m "Automatic updat
 git tag "$new_master_version$new_master_qualifier" master
 echo "Actions done on master: New commit for the .mvn/maven.config changes, new tag $new_master_version$new_master_qualifier." 
 
-#git checkout "$branch" >/dev/null 2>&1
-#git push --set-upstream origin "$branch" >/dev/null 2>&1
-#git push --tags >/dev/null 2>&1
+git checkout "$branch" >/dev/null 2>&1
+git push --set-upstream origin "$branch" >/dev/null 2>&1
+git push --tags >/dev/null 2>&1
 echo "Changes on branch $branch saved"
 
-#git checkout master >/dev/null 2>&1
-#git push origin master >/dev/null 2>&1
-#git push --tags >/dev/null 2>&1
+git checkout master >/dev/null 2>&1
+git push origin master >/dev/null 2>&1
+git push --tags >/dev/null 2>&1
 echo "Changes on master saved"
