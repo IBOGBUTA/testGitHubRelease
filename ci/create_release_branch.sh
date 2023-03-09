@@ -5,7 +5,7 @@
 
 echo "Running from path: "$(dirname "${BASH_SOURCE[0]}")
 
-source ./common_release_functions.sh
+source common_release_functions.sh || {echo "Error: Cannot reach external resource common_release_functions.sh. Will exit."; exit 1; }
 TAG_FORMAT_ON_MASTER="^[0-9]*+\.[0-9]*+\.[0-9]*+-SNAPSHOT$"
 TAG_PATTERN_ON_MASTER="([0-9]+)\.([0-9]+)\.([0-9]+)-SNAPSHOT"
 
