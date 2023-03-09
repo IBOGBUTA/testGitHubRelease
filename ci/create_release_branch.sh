@@ -81,7 +81,7 @@ git checkout master >/dev/null 2>&1
 updateMavenConfig "$new_master_version" "$new_master_qualifier" && 
 	{ LOG "Updating .mvn/maven.config on master to $new_master_version$new_master_qualifier"; } || 
 	{ LOG -e "Failed to update Maven Config to $new_master_version$new_master_qualifier"; exit 1; }
-git diff --exit-code --quiet .mvn/maven.config || git commit -m "Automatic update of version" .mvn/maven.config
+git diff --exit-code --quiet .mvn/maven.config || git commit -m "Automatic update of Maven version to $new_master_version$new_master_qualifier" .mvn/maven.config
 git tag "$new_master_version$new_master_qualifier" master
 LOG "Actions done on master: New commit for the .mvn/maven.config changes, new tag $new_master_version$new_master_qualifier." 
 

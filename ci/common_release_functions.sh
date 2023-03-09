@@ -1,19 +1,17 @@
 #!/bin/bash
 
 LOG() {
-	if [ "$1" = "0" ];
+	if [ "$1" = "-d" ];
 	then
-		echo `date` "[INFO]"  "$2" >> $LOGFILE 
-	elif [ "$1" = "1" ];
+		echo `date` "[DEBUG]"  "$2" 
+	elif [ "$1" = "-e" ];
 	then
-		echo `date` "[ERROR]"  "$2" >> $LOGFILE 
+		echo `date` "[ERROR]"  "$2"
 	else		
-		if [ "$DEBUG" = true ];
-		then
-			echo `date` "[DEBUG]"  "$1" >> $LOGFILE 
-		fi	
+		echo `date` "[INFO]"  "$1"
 	fi
 }
+
 
 runningOnMaster() {
 	current_branch=$(git rev-parse --abbrev-ref HEAD)
