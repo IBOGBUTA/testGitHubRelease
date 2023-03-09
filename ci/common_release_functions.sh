@@ -1,5 +1,20 @@
 #!/bin/bash
 
+LOG() {
+	if [ "$1" = "0" ];
+	then
+		echo `date` "[INFO]"  "$2" >> $LOGFILE 
+	elif [ "$1" = "1" ];
+	then
+		echo `date` "[ERROR]"  "$2" >> $LOGFILE 
+	else		
+		if [ "$DEBUG" = true ];
+		then
+			echo `date` "[DEBUG]"  "$1" >> $LOGFILE 
+		fi	
+	fi
+}
+
 runningOnMaster() {
 	current_branch=$(git rev-parse --abbrev-ref HEAD)
 	if [[ ! $current_branch =~ ^master$ ]]; then		
