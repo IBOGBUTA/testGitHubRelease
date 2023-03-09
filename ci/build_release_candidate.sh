@@ -1,49 +1,45 @@
 #!/bin/bash
 
-#START - common functions
-function updateMavenConfig() {
-	if [ $# -ne 2 ]; then
-		echo "Error: updateMavenConfig() - Invalid number of parameters provided. Expected 2, received $#."
-		return 1
-	fi
-	version=$1
-	qualifier=$2	
-	sed -i "s/-Drevision=.*/-Drevision=$version/" .mvn/maven.config
-	sed -i "s/-Dchangelist=.*/-Dchangelist=$qualifier/" .mvn/maven.config
-}
-
-#END - common functions
-
-
 # Description:
-### This script can run only on master and it will continue on the release branch if the previous tag contains -RCN-SNAPSHOT in the name
+### This script can run only on master and it will continue on the release branch
 ### This is common code for Release RC and for the HF RC
 
+RUN_PATH=$(dirname "${BASH_SOURCE[0]}")
+source $RUN_PATH/common_release_functions.sh || { LOG -e "Cannot reach external resource $RUN_PATH/common_release_functions.sh. Will exit."; exit 1; }
+
+TAG_FORMAT_SNAPSHOT_RC="^[0-9]*+\.[0-9]*+\.[0-9]*+-((HF[0-9]+-RC[0-9]+)|(RC[0-9]+))-SNAPSHOT$"
+TAG_PATTERN_SNAPSHOT_RELEASE="^([0-9]+)\.([0-9]+)\.([0-9]+)-RC([0-9]+)-SNAPSHOT$"
+TAG_PATTERN_SNAPSHOT_HOTFIX="^([0-9]+)\.([0-9]+)\.([0-9]+)-HF([0-9]+)-RC([0-9]+)-SNAPSHOT$"
+DEF_ARGV_FINAL="final"
+
+## getNextVersion()
+## This script will provide the next possible release version or 
+## will exit with return code 1 if anything fails 
+## accepts arguments:
+## 			$1 				- branch name
+##			$2(optional) 	- final or empty
+## returns: 
+##			0 - in case of success
+##	   string - representing the next release version
 function getNextVersion() {
-	# Check if the current branch name matches the pattern master
-	BRANCH=$(git rev-parse --abbrev-ref HEAD)
-	if [[ ! $BRANCH =~ ^master$ ]]; then
-	  echo "Error: preBuildPreparation() can be called only from the master."
-	  exit 1
-	fi
+	# This script can run only on master branch
+	runningOnMaster || { LOG -e "You should create a RC branch from the master branch."; exit 1; }
 	
 	# Get the branch name where the new RC will be built
-	# Check if the second argument exists
 	if [ -z "$1" ]; then
-		echo "Error: Branch name argument is missing"
+		LOG -e "Branch name argument is missing"
 		exit 1
 	else
 		branch_name="$1"
 	fi
 	
 	# Get the release type of this new candidate
-	# Check if the second argument exists
 	if [ -z "$2" ]; then
-		release_type="rc"
+		release_type="rc" #set to a value that will not be used
 	else
 		release_type="$2"
-		if [[ "$release_type" != "final" ]]; then
-			echo "Error: Release type argument can be empty or 'final'"
+		if [[ "$release_type" != $DEF_ARGV_FINAL ]]; then
+			LOG -e "Release type argument can be empty or 'final'"
 			exit 1
 		fi
 	fi
@@ -55,17 +51,18 @@ function getNextVersion() {
 	# Check if the previous tag follows the format X.Y.Z(-HFN)-RCN-SNAPSHOT
 	# get the latest tag
 	git fetch --tags >/dev/null 2>&1
-	tag=$(git describe --tags --abbrev=0) # fails on Github
-	#tag=$(git tag --merged $branch_name --sort=-v:refname | head -n1)
+	
+	# Retrieve latest tag on current branch that matches the format X.Y.Z-RCN-SNAPSHOT or X.Y.Z-HFN-RCN-SNAPSHOT
+	tag=$(git for-each-ref --sort=-creatordate --format '%(refname:short)' refs/tags --merged $branch_name | grep -E $TAG_FORMAT_SNAPSHOT_RC | head -1)
 	
 	isHF=false
 	# get the major, minor, patch, RC and HF on else branch 
-	if [[ $tag =~ ([0-9]+)\.([0-9]+)\.([0-9]+)-RC([0-9]+)-SNAPSHOT ]]; then
+	if [[ $tag =~ $TAG_PATTERN_SNAPSHOT_RELEASE ]]; then
 		major=${BASH_REMATCH[1]}
 		minor=${BASH_REMATCH[2]}
 		patch=${BASH_REMATCH[3]}
 		rc=${BASH_REMATCH[4]}
-	elif [[ $tag =~ ([0-9]+)\.([0-9]+)\.([0-9]+)-HF([0-9]+)-RC([0-9]+)-SNAPSHOT ]]; then
+	elif [[ $tag =~ $TAG_PATTERN_SNAPSHOT_HOTFIX ]]; then
 		major=${BASH_REMATCH[1]}
 		minor=${BASH_REMATCH[2]}
 		patch=${BASH_REMATCH[3]}
@@ -73,28 +70,29 @@ function getNextVersion() {
 		rc=${BASH_REMATCH[5]}
 		isHF=true;
 	else
-		echo "Error: tag ($tag) is not in the correct format" >&2
+		LOG -e "tag ($tag) is not in the correct format" >&2
 		exit 1
 	fi
 	
 	# Setup RC tag for the upcoming build
 	new_rc_version="${major}.${minor}.${patch}"
 	if [ "$isHF" == "false" ]; then
-		if [[ "$release_type" == "final" ]]; then
+		if [[ "$release_type" == $DEF_ARGV_FINAL ]]; then
 			new_rc_qualifier=""
 		else
 			new_rc_qualifier="-RC$rc"
 		fi
 	else
-		if [[ "$release_type" == "final" ]]; then
+		if [[ "$release_type" == $DEF_ARGV_FINAL ]]; then
 			new_rc_qualifier="-HF$hf"
 		else
 			new_rc_qualifier="-HF$hf-RC$rc"
 		fi
 	fi
 	
+	#Do not use LOG here, this is the string returned by the function
 	echo "$new_rc_version$new_rc_qualifier"
-	return 0	
+	return 0
 }
 
 function preBuildPreparation() {
