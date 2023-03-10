@@ -29,9 +29,9 @@ branchExists() {
 	fi
 	branch=$1
 	if git ls-remote --exit-code --heads origin $BRANCH >/dev/null 2>&1; then
-		return 1
+		return 0
 	fi
-	return 0
+	return 1
 }
 
 # Version related
