@@ -12,8 +12,76 @@ TAG_PATTERN_SNAPSHOT_RELEASE="^([0-9]+)\.([0-9]+)\.([0-9]+)-RC([0-9]+)-SNAPSHOT$
 TAG_PATTERN_SNAPSHOT_HOTFIX="^([0-9]+)\.([0-9]+)\.([0-9]+)-HF([0-9]+)-RC([0-9]+)-SNAPSHOT$"
 DEF_ARGV_FINAL="final"
 
+## checkBranchAndRestrictions()
+## This function will confirm that the provided branch exists and
+## the provided restriction is matched (the upcoming build will trigger a relase build or a HF)
+## accepts arguments:
+## 			$1 				- branch name
+##			$1(optional) 	- [hotfix | release]
+## returns:
+##			0 - if all checks passed
+##			1 - if checks failed
+
+function checkBranchAndRestrictions() {
+	# This script can run only on master branch
+	runningOnMaster || { LOG -e "checkBranchAndRestrictions() can be called only from the master branch."; exit 1; }
+	
+	# Get the branch name where the check should be made
+	if [ -z "$1" ]; then
+		LOG -e "Branch name argument is missing"
+		exit 1
+	else
+		branch_name="$1"
+	fi
+	
+	# Get the release type of this new candidate
+	if [ -z "$2" ]; then
+		restriction_type="none" 
+	else
+		restriction_type="$2"
+		if [[ "$restriction_type" != "release" && "$restriction_type" != "hotfix" ]]; then
+			LOG -e "Release type argument can be 'release', 'hotfix' or empty"
+			exit 1
+		fi
+	fi
+	
+	branchExists && { LOG "Branch $branch_name exists. Script can continue."; } || { LOG -e "Branch $branch_name doesn't exist. Will exit."; return 1; }
+	
+	restrictionRes=0
+	if [[ "$restriction_type" != "none" ]]; then
+		git fetch
+        git checkout $branch_name
+        git fetch --tags
+            
+		tag=$(git for-each-ref --sort=-creatordate --format '%(refname:short)' refs/tags --merged $branch_name | grep -E $TAG_FORMAT_SNAPSHOT_RC | head -1)
+		
+		nextVersionType="unknown"
+        if [[ $tag =~ $TAG_PATTERN_SNAPSHOT_RELEASE ]]; then
+            nextVersionType="release"
+			if [[ "$restriction_type" == "hotfix" ]]; then
+				LOG -e "Expecting a release, but next version is a hotfix release. Is this the correct branch?"
+				restrictionRes=1
+			fi			
+        elif [[ $tag =~ $TAG_PATTERN_SNAPSHOT_HOTFIX ]]; then
+            nextVersionType="hotfix"
+			if [[ "$restriction_type" == "release" ]]; then 
+				LOG -e "Expecting hotfix, but next version is a release. Is this the correct branch?"
+				restrictionRes=1
+			fi
+        else
+			LOG -e "Latest tag($tag) cannot be used to determine next release type. Please correct the tags."
+			restrictionRes=1			
+        fi	
+		#return to master
+		git checkout master
+	fi	
+	
+	return $restrictionRes
+}
+
+
 ## getNextVersion()
-## This script will provide the next possible release version or 
+## This function will provide the next possible release version or 
 ## will exit with return code 1 if anything fails 
 ## accepts arguments:
 ## 			$1 				- branch name
@@ -23,7 +91,7 @@ DEF_ARGV_FINAL="final"
 ##	   string - representing the next release version
 function getNextVersion() {
 	# This script can run only on master branch
-	runningOnMaster || { LOG -e "You should create a RC branch from the master branch."; exit 1; }
+	runningOnMaster || { LOG -e "getNextVersion() can be called only from the master branch."; exit 1; }
 	
 	# Get the branch name where the new RC will be built
 	if [ -z "$1" ]; then

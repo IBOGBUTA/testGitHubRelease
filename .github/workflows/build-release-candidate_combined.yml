@@ -43,40 +43,22 @@ jobs:
         git config --global user.name "Glaucio Czekailo"
     - name: GIT check for branch
       run: |
-        BRANCH="VERSION-${{ github.event.inputs.release_branch }}"        
-        if git ls-remote --exit-code --heads origin $BRANCH >/dev/null 2>&1; then
-            echo "Git branch '$BRANCH' exists in the remote repository"
-            git fetch
-            git checkout $BRANCH
-            git fetch --tags
-            tag=$(git describe --tags --abbrev=0)
-            nextVersionType="unknown"
-            if [[ $tag =~ ([0-9]+)\.([0-9]+)\.([0-9]+)-RC([0-9]+)-SNAPSHOT ]]; then
-                echo "Next Release candidate can be released based on version $tag"
-                nextVersionType="release"
-            elif [[ $tag =~ ([0-9]+)\.([0-9]+)\.([0-9]+)-HF([0-9]+)-RC([0-9]+)-SNAPSHOT ]]; then
-                echo "Next HF release candidate can be released based on version $tag" 
-                nextVersionType="hotfix"
-            else
-                echo "Currently working on version $tag. Next release version cannot be determined.Please correct the tags."
-                exit 1
-            fi
-            
-            if [[ "${{ github.event.inputs.build_restrictions }}" == "Must be a Release" && "$nextVersionType" == "hotfix" ]]; then
-                echo "Error: Expecting release, but next version is a hotfix release. Is this the correct branch?"
-                exit 1
-            elif [[ "${{ github.event.inputs.build_restrictions }}" == "Must be a Hotfix" && "$nextVersionType" == "release" ]]; then
-                echo "Error: Expecting hotfix, but next version is a release. Is this the correct branch?"
-                exit 1
-            else
-                echo "Build can continue"
-            fi                     
-        else
-            echo "Git branch '$BRANCH' does not exist in the remote repository"
-            exit 1
+        BRANCH="VERSION-${{ github.event.inputs.release_branch }}"
+        RESTRICTION=""
+        if [[ "${{ github.event.inputs.build_restrictions }}" == "Must be a Release" ]]; then
+            RESTRICTION="release"
+        elif [[ "${{ github.event.inputs.build_restrictions }}" == "Must be a Hotfix" ]]; then
+            RESTRICTION="hotfix"    
         fi
         
-        git checkout master
+        source ci/build_release_candidate.sh        
+        checkBranchAndRestrictions $BRANCH $RESTRICTION
+        RC=$?
+        
+        if [[ "$RC" != "0" ]]; then
+            exit 1
+        fi
+               
         echo "BRANCH=$BRANCH" >> $GITHUB_ENV        
     - name: Pre-build version preparation
       id: prebuild

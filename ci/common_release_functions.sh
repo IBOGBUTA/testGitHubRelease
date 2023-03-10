@@ -1,5 +1,6 @@
 #!/bin/bash
 
+# General
 LOG() {
 	if [ "$1" = "-d" ];
 	then
@@ -12,7 +13,7 @@ LOG() {
 	fi
 }
 
-
+# Git related 
 runningOnMaster() {
 	current_branch=$(git rev-parse --abbrev-ref HEAD)
 	if [[ ! $current_branch =~ ^master$ ]]; then		
@@ -21,9 +22,22 @@ runningOnMaster() {
 	return 0
 }
 
+branchExists() {
+	if [ $# -ne 1 ]; then
+		echo LOG -e "branchExists() - Invalid number of parameters provided. Expected 1, received $#."
+		return 1
+	fi
+	branch=$1
+	if git ls-remote --exit-code --heads origin $BRANCH >/dev/null 2>&1; then
+		return 1
+	fi
+	return 0
+}
+
+# Version related
 updateMavenConfig() {
 	if [ $# -ne 2 ]; then
-		echo "Error: updateMavenConfig() - Invalid number of parameters provided. Expected 2, received $#."
+		LOG -e "updateMavenConfig() - Invalid number of parameters provided. Expected 2, received $#."
 		return 1
 	fi
 	version=$1
