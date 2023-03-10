@@ -8,6 +8,8 @@ RUN_PATH=$(dirname "${BASH_SOURCE[0]}")
 source $RUN_PATH/common_release_functions.sh || { LOG -e "Cannot reach external resource $RUN_PATH/common_release_functions.sh. Will exit."; exit 1; }
 TAG_FORMAT_ON_MASTER="^[0-9]*+\.[0-9]*+\.[0-9]*+-SNAPSHOT$"
 TAG_PATTERN_ON_MASTER="([0-9]+)\.([0-9]+)\.([0-9]+)-SNAPSHOT"
+TAG_FORMAT_SNAPSHOT_RC="^[0-9]*+\.[0-9]*+\.[0-9]*+-((HF[0-9]+-RC[0-9]+)|(RC[0-9]+))-SNAPSHOT$"
+TAG_PATTERN_SNAPSHOT_RELEASE="^([0-9]+)\.([0-9]+)\.([0-9]+)-RC([0-9]+)-SNAPSHOT$"
 
 # This script can run only on master branch
 runningOnMaster && { LOG "$0 called from master. Script can continue."; } || { LOG -e "You should create a RC branch from the master branch."; exit 1; }
@@ -57,6 +59,23 @@ branch="VERSION-${major}.${minor}.${patch}"
 # Setup RC tag name for future development builds on this release branch
 future_rc_version="${major}.${minor}.${patch}"
 future_rc_qualifier="-RC1-SNAPSHOT"
+
+# Make sure all branches are available only for HF release.
+git ls-remote --heads origin | awk -F "/" '/VERSION-*/ {print $NF}' | {
+    safeToBranchOff=0
+    while read available_branch; do 
+        git checkout $available_branch >/dev/null 2>&1
+        latest_snapshot_tag=$(git for-each-ref --sort=-creatordate --format '%(refname:short)' refs/tags --merged $available_branch | grep -E $TAG_FORMAT_SNAPSHOT_RC | head -1)        
+        if [[ $latest_snapshot_tag =~ $TAG_PATTERN_SNAPSHOT_RELEASE ]]; then
+            LOG -e "Branch $available_branch is stil in development. Latest SNAPSHOT tag on $available_branch is $latest_snapshot_tag"
+            safeToBranchOff=1
+        fi
+    done
+    exit $safeToBranchOff
+}
+RC=$?
+git checkout master >/dev/null 2>&1
+[[ $RC == 1 ]] && exit 1 || LOG "New branch can be created. There's no open development branch or they all reached HF phase."
 
 # Setup new master tag
 ((master_patch=patch+1))
