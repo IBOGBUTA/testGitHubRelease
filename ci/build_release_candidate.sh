@@ -49,9 +49,9 @@ function checkBranchAndRestrictions() {
 	
 	restrictionRes=0
 	if [[ "$restriction_type" != "none" ]]; then
-		git fetch
-        git checkout $branch_name
-        git fetch --tags
+		git fetch >/dev/null 2>&1
+        git checkout $branch_name >/dev/null 2>&1
+        git fetch --tags >/dev/null 2>&1
             
 		tag=$(git for-each-ref --sort=-creatordate --format '%(refname:short)' refs/tags --merged $branch_name | grep -E $TAG_FORMAT_SNAPSHOT_RC | head -1)
 		
@@ -59,13 +59,13 @@ function checkBranchAndRestrictions() {
         if [[ $tag =~ $TAG_PATTERN_SNAPSHOT_RELEASE ]]; then
             nextVersionType="release"
 			if [[ "$restriction_type" == "hotfix" ]]; then
-				LOG -e "Expecting a release, but next version is a hotfix release. Is this the correct branch?"
+				LOG -e "Expecting hotfix, but next build type on this branch is a release. Is this the correct branch?"
 				restrictionRes=1
 			fi			
         elif [[ $tag =~ $TAG_PATTERN_SNAPSHOT_HOTFIX ]]; then
             nextVersionType="hotfix"
 			if [[ "$restriction_type" == "release" ]]; then 
-				LOG -e "Expecting hotfix, but next version is a release. Is this the correct branch?"
+				LOG -e "Expecting release, but next build type on this branch is a hotfix. Is this the correct branch?"
 				restrictionRes=1
 			fi
         else
