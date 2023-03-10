@@ -41,7 +41,7 @@ jobs:
       run: |
         git config --global user.email "glaucio.porcidesczekailo@atos.net"
         git config --global user.name "Glaucio Czekailo"
-    - name: GIT check for branch
+    - name: GIT confirm branch and restrictions
       run: |
         BRANCH="VERSION-${{ github.event.inputs.release_branch }}"
         RESTRICTION=""
@@ -76,10 +76,7 @@ jobs:
             final="final"
         fi        
         source ci/build_release_candidate.sh        
-        buildVersion=$(getNextVersion $BRANCH $final)
-
-        buildVersion="$(echo "$buildVersion" | tr -d '\n\r')"
-        
+        buildVersion=$(getNextVersion $BRANCH $final | tr -d '\n\r')
         echo "buildVersion=$buildVersion" >> $GITHUB_OUTPUT 
         
         if [[ "$final" == "final" ]]; then 
