@@ -52,6 +52,11 @@ elif [[ "$release_type" == "minor" ]]; then
 	patch=0
 fi
 
+# Setup new master tag
+((master_patch=patch+1))
+new_master_version="${major}.${minor}.${master_patch}"
+new_master_qualifier="-SNAPSHOT"
+
 LOG "New $release_type release version branch will be named VERSION-${major}.${minor}.${patch}"
 # Setup new branch name
 branch="VERSION-${major}.${minor}.${patch}"
@@ -59,6 +64,7 @@ branch="VERSION-${major}.${minor}.${patch}"
 # Setup RC tag name for future development builds on this release branch
 future_rc_version="${major}.${minor}.${patch}"
 future_rc_qualifier="-RC1-SNAPSHOT"
+
 
 # Make sure all branches are available only for HF release.
 git ls-remote --heads origin | awk -F "/" '/VERSION-*/ {print $NF}' | {
@@ -77,10 +83,6 @@ RC=$?
 git checkout master >/dev/null 2>&1
 [[ $RC == 1 ]] && exit 1 || LOG "New branch can be created. There's no open development branch or they all reached HF phase."
 
-# Setup new master tag
-((master_patch=patch+1))
-new_master_version="${major}.${minor}.${master_patch}"
-new_master_qualifier="-SNAPSHOT"
 
 # create RC branch
 git checkout -b "$branch" >/dev/null 2>&1
