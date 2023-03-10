@@ -73,7 +73,9 @@ function checkBranchAndRestrictions() {
 			restrictionRes=1			
         fi	
 		#return to master
-		git checkout master >/dev/null 2>&1
+		git checkout master >/dev/null 2>&1	
+
+		[[ $restrictionRes == 0 ]] && LOG "The next build will be a $restriction_type as expected."
 	fi	
 	
 	return $restrictionRes
