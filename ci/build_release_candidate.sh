@@ -73,7 +73,7 @@ function checkBranchAndRestrictions() {
 			restrictionRes=1			
         fi	
 		#return to master
-		git checkout master
+		git checkout master >/dev/null 2>&1
 	fi	
 	
 	return $restrictionRes
