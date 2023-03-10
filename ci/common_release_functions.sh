@@ -24,7 +24,7 @@ runningOnMaster() {
 
 branchExists() {
 	if [ $# -ne 1 ]; then
-		echo LOG -e "branchExists() - Invalid number of parameters provided. Expected 1, received $#."
+		LOG -e "branchExists() - Invalid number of parameters provided. Expected 1, received $#."
 		return 1
 	fi
 	branch=$1

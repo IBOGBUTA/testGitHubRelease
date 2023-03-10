@@ -45,7 +45,7 @@ function checkBranchAndRestrictions() {
 		fi
 	fi
 	
-	branchExists && { LOG "Branch $branch_name exists. Script can continue."; } || { LOG -e "Branch $branch_name doesn't exist. Will exit."; return 1; }
+	branchExists $branch_name && { LOG "Branch $branch_name exists. Script can continue."; } || { LOG -e "Branch $branch_name doesn't exist. Will exit."; return 1; }
 	
 	restrictionRes=0
 	if [[ "$restriction_type" != "none" ]]; then
