@@ -45,8 +45,9 @@ jobs:
       run: |
         git config --global user.email "glaucio.porcidesczekailo@atos.net"
         git config --global user.name "Glaucio Czekailo"
-    - name: GIT check for branch
+    - name: Validate refs
       run: |       
+        source ci/common_release_functions.sh        
         CALLED_VIA_BUILDRC=false
         CHECKOUT_FROM=""
         
@@ -54,29 +55,19 @@ jobs:
             echo "Will use latest version on master for build"
             CHECKOUT_FROM="master"
         elif [[ "${{ inputs.build_base }}" == "current version on branch" ]]; then
-            BRANCH="VERSION-${{ inputs.version }}"
-            if git ls-remote --exit-code --heads origin $BRANCH >/dev/null 2>&1; then
-                echo "Git branch '$BRANCH' exists in the remote repository"
-                echo "Will use latest version on branch $BRANCH"
-                CHECKOUT_FROM="$BRANCH"
-            else
-                echo "Error: Git branch '$BRANCH' does not exists in the remote repository"    
-                exit 1
-            fi                        
+            BRANCH="VERSION-${{ inputs.version }}"            
+            branchExists $BRANCH && echo "Git branch '$BRANCH' exists in the remote repository. Will build here." || 
+                    { echo "Error: Git branch '$BRANCH' does not exists in the remote repository";exit 1; }         
+            CHECKOUT_FROM="$BRANCH"                                               
         elif [[ "${{ inputs.build_base }}" == "specific version(tag)" ]]; then      
             TAG="${{ inputs.version }}"   
-            if git ls-remote --exit-code --tags --heads origin refs/tags/$TAG >/dev/null 2>&1; then
-                echo "Git tag '$TAG' exists in the remote repository"
-                echo "Will checkout and use tag $TAG for build"
-                CHECKOUT_FROM="$TAG"
-            else
-                echo "Error: Git tag '$TAG' does not exists in the remote repository"    
-                exit 1
-            fi
+            tagExists $TAG && echo "Git tag '$TAG' exists in the remote repository. Will build here." || 
+                    { echo "Error: Git tag '$TAG' does not exists in the remote repository";exit 1; }
+            CHECKOUT_FROM="$TAG"            
         elif [[ "${{ inputs.build_base }}" == "next" || "${{ inputs.build_base }}" == "final" ]]; then
-            #hidden value 
-            echo "Workflow was called from Build Release Candidate"  
+            #hidden values              
             CALLED_VIA_BUILDRC=true
+            echo "Workflow was called from Build Release Candidate. Will build version ${{ inputs.version }}."
             echo "Will build ${{ inputs.version }}"
         else
             echo "Unknown option. Will exit."
@@ -103,9 +94,9 @@ jobs:
             fi
         else
             echo "Workflow called via GitHub Action UI"
-            git fetch
-            git fetch --tags
-            git checkout $CHECKOUT_FROM
+            git fetch >/dev/null 2>&1;
+            git fetch --tags >/dev/null 2>&1;
+            git checkout $CHECKOUT_FROM >/dev/null 2>&1;
             echo "Will continue build from here"
         fi
         
@@ -119,7 +110,7 @@ jobs:
         #Just a temporary check here
         git status
         
-    - name: Post-build upload
+    - name: Post-build actions
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |

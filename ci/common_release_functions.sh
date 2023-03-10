@@ -34,6 +34,18 @@ branchExists() {
 	return 1
 }
 
+tagExists() {
+	if [ $# -ne 1 ]; then
+		LOG -e "tagExists() - Invalid number of parameters provided. Expected 1, received $#."
+		return 1
+	fi
+	TAG=$1
+	if git ls-remote --exit-code --tags --heads origin refs/tags/$TAG >/dev/null 2>&1; then
+		return 0
+	fi
+	return 1
+}
+
 # Version related
 updateMavenConfig() {
 	if [ $# -ne 2 ]; then

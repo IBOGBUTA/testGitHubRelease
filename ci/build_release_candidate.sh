@@ -21,7 +21,6 @@ DEF_ARGV_FINAL="final"
 ## returns:
 ##			0 - if all checks passed
 ##			1 - if checks failed
-
 function checkBranchAndRestrictions() {
 	# This script can run only on master branch
 	runningOnMaster || { LOG -e "checkBranchAndRestrictions() can be called only from the master branch."; exit 1; }
