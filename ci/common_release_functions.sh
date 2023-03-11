@@ -1,5 +1,8 @@
 #!/bin/bash
 
+#Globals
+HELM_CHARTS_LOCATION="charts"
+
 # General
 LOG() {
 	if [ "$1" = "-d" ];
@@ -57,4 +60,19 @@ updateMavenConfig() {
 	sed -i "s/-Drevision=.*/-Drevision=$version/" .mvn/maven.config
 	sed -i "s/-Dchangelist=.*/-Dchangelist=$qualifier/" .mvn/maven.config
 	return 0
+}
+
+set_helm_chart_version() {
+  if [ $# -ne 2 ]; then
+		LOG -e "set_helm_chart_version() - Invalid number of parameters provided. Expected 2, received $#."
+		return 1
+  fi
+  
+  local -r chart="${1}"
+  local -r version="${2}"
+
+  if ! yq  -i e ".version = \"${version}\"" "${HELM_CHARTS_LOCATION}/${chart}/Chart.yaml"; then
+    echo "Failed to set helm chart version to ${version}"
+    return 1
+  fi
 }

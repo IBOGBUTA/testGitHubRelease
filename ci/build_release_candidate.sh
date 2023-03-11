@@ -256,7 +256,9 @@ function buildPreparation() {
 	LOG "Maven version updated to $new_rc_version$new_rc_qualifier (changed file: .mvn/maven.config)"
 		
 	# Update Helm Charts
-	
+	#chart_version="${current_revision}-${CI_COMMIT_SHA}"
+	#set_helm_chart_version "project" "${chart_version}"
+
 	echo "Version files are ready. Build can continue."	
 	return 0
 }
