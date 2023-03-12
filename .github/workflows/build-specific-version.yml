@@ -108,10 +108,7 @@ jobs:
         echo "Running on branch $ON_BRANCH"
         
         #Just a temporary check here
-        git status
-
-        # Temporary - make the build final
-        exit 1
+        git status       
         
     - name: Post-build actions
       env:

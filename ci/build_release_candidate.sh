@@ -265,7 +265,11 @@ function buildPreparation() {
 
 	# Update Helm Charts
 	current_date=$(date +'%Y%m%d.%H%M%S')
-	chart_version="$new_rc_version$new_rc_qualifier-$current_date$TAG_SHA"
+	if [[ "$release_type" == "final" ]]; then
+		chart_version="$new_rc_version$new_rc_qualifier"
+	else
+		chart_version="$new_rc_version$new_rc_qualifier-SNAPSHOT-$current_date$TAG_SHA"
+	fi
 	LOG "Helm chart will be set to use version: $chart_version"
 	#set_helm_chart_version "project" "${chart_version}"
 
