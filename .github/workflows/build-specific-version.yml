@@ -109,6 +109,9 @@ jobs:
         
         #Just a temporary check here
         git status
+
+        # Temporary - make the build final
+        exit 1
         
     - name: Post-build actions
       env:
