@@ -253,8 +253,16 @@ function buildPreparation() {
 	
 	# Update the Maven version in the maven.config file
 	updateMavenConfig "$new_rc_version" "$new_rc_qualifier"	
-	LOG "Maven version updated to $new_rc_version$new_rc_qualifier (changed file: .mvn/maven.config)"
-		
+	LOG "Maven version updated to $new_rc_version$new_rc_qualifier (changed file: .mvn/maven.config)"	
+	
+	# Create the tag here, don't push
+	git diff --exit-code --quiet .mvn/maven.config || git commit -m "[WF] Automatic update of version to $new_rc_version$new_rc_qualifier" .mvn/maven.config
+	git tag "$new_rc_version$new_rc_qualifier" "$branch_name"
+	
+	# Get tag commit sha
+	TAG_SHA=$(git rev-parse $new_rc_version$new_rc_qualifier)
+	LOG "Helm charts will use sha $TAG_SHA"
+
 	# Update Helm Charts
 	#chart_version="${current_revision}-${CI_COMMIT_SHA}"
 	#set_helm_chart_version "project" "${chart_version}"
@@ -427,26 +435,26 @@ function postBuildActions() {
 	git fetch --tags
 	
 	# Setup RC tag for the build that just finished
-	new_rc_version="${major}.${minor}.${patch}"
-	if [ "$isHF" == "false" ]; then
-		if [[ "$release_type" == "final" ]]; then
-			new_rc_qualifier=""
-		else
-			new_rc_qualifier="-RC$rc"
-		fi
-	else
-		if [[ "$release_type" == "final" ]]; then
-			new_rc_qualifier="-HF$hf"
-		else
-			new_rc_qualifier="-HF$hf-RC$rc"
-		fi
-	fi
+	# new_rc_version="${major}.${minor}.${patch}"
+	# if [ "$isHF" == "false" ]; then
+	# 	if [[ "$release_type" == "final" ]]; then
+	# 		new_rc_qualifier=""
+	# 	else
+	# 		new_rc_qualifier="-RC$rc"
+	# 	fi
+	# else
+	# 	if [[ "$release_type" == "final" ]]; then
+	# 		new_rc_qualifier="-HF$hf"
+	# 	else
+	# 		new_rc_qualifier="-HF$hf-RC$rc"
+	# 	fi
+	# fi
 	
 	# Update the Maven version in the maven.config file
-	updateMavenConfig "$new_rc_version" "$new_rc_qualifier"	
-	echo "2. will update .mvn/maven.config on branch to $new_rc_version and $new_rc_qualifier"
-	git diff --exit-code --quiet .mvn/maven.config || git commit -m "Automatic update of version" .mvn/maven.config
-	git tag "$new_rc_version$new_rc_qualifier" "$branch_name"
+	#updateMavenConfig "$new_rc_version" "$new_rc_qualifier"	
+	#echo "2. will update .mvn/maven.config on branch to $new_rc_version and $new_rc_qualifier"
+	#git diff --exit-code --quiet .mvn/maven.config || git commit -m "Automatic update of version" .mvn/maven.config
+	#git tag "$new_rc_version$new_rc_qualifier" "$branch_name"
 	
 	
 	# Setup RC tag name for future development builds on this release branch

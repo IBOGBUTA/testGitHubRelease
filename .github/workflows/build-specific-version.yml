@@ -116,7 +116,9 @@ jobs:
       run: |
         ON_BRANCH=$(git rev-parse --abbrev-ref HEAD)
         echo "Running on branch $ON_BRANCH"
-        
-                
-        
-        
+        if [[ "$CALLED_VIA_BUILDRC" == "true" ]]; then
+            source ci/build_release_candidate.sh            
+            # wil save version changes and build tag here
+            git push --tags 
+	          git push
+        fi
