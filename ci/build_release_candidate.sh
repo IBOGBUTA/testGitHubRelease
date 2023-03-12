@@ -264,7 +264,9 @@ function buildPreparation() {
 	LOG "Helm charts will use sha $TAG_SHA"
 
 	# Update Helm Charts
-	#chart_version="${current_revision}-${CI_COMMIT_SHA}"
+	current_date=$(date +'%Y%m%d.%H%M%S')
+	chart_version="$new_rc_version$new_rc_qualifier-$current_date$TAG_SHA"
+	LOG "Helm chart will be set to use version: $chart_version"
 	#set_helm_chart_version "project" "${chart_version}"
 
 	echo "Version files are ready. Build can continue."	
