@@ -271,16 +271,14 @@ function buildPreparation() {
 		chart_version="$new_rc_version$new_rc_qualifier-SNAPSHOT-$current_date$TAG_SHA"
 	fi
 	LOG "Helm chart will be set to use version: $chart_version"
-	set_helm_chart_version "project" "${chart_version}"
+	set_helm_chart_version "project" "${chart_version}" && LOG "Helm chart set to use version: $chart_version" || exit 1
 	
-	# Will use the chart versioning for the client as well
-	set_client_version "${chart_version}"
+	# Will use the chart versioning for the client as well 
+	set_client_version "${chart_version}" && LOG "Client set to use version: $chart_version" || exit 1
 
 	LOG "Version files are ready. Build can continue."	
 	return 0
 }
-
-
 
 function preBuildPreparation() {
 	# Check if the current branch name matches the pattern master

@@ -81,6 +81,8 @@ set_helm_chart_version() {
     LOG -e "Failed to set helm chart image version to ${version}"
     return 1
   fi 
+
+  git commit -m "[WF] Automatic update of Helm Charts to ${version}" "${HELM_CHARTS_LOCATION}/${chart}/Chart.yaml" "${HELM_CHARTS_LOCATION}/${chart}/values.yaml"
 }
 
 set_client_version() {
@@ -95,4 +97,6 @@ set_client_version() {
 		LOG -e "Failed to set version for the Client project"
 		return 1
   	fi
+
+	git commit -m "[WF] Automatic update of Client Project to ${version}" "${CLIENT_LOCATION}/package.json"
 }
