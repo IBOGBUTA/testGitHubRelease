@@ -2,6 +2,7 @@
 
 #Globals
 HELM_CHARTS_LOCATION="charts"
+CLIENT_LOCATION="project-client"
 
 # General
 LOG() {
@@ -72,7 +73,26 @@ set_helm_chart_version() {
   local -r version="${2}"
 
   if ! yq  -i e ".version = \"${version}\"" "${HELM_CHARTS_LOCATION}/${chart}/Chart.yaml"; then
-    echo "Failed to set helm chart version to ${version}"
+    LOG -e "Failed to set helm chart version to ${version}"
     return 1
   fi
+
+  if ! yq  -i e ".image.version = \"${version}\"" "${HELM_CHARTS_LOCATION}/${chart}/values.yaml"; then
+    LOG -e "Failed to set helm chart image version to ${version}"
+    return 1
+  fi 
+}
+
+set_client_version() {
+	if [ $# -ne 1 ]; then
+		LOG -e "set_client_version() - Invalid number of parameters provided. Expected 1, received $#."
+		return 1
+  	fi
+
+	local -r version="${1}"
+
+	if ! yq -i e '.version = \"${version}\"' "${CLIENT_LOCATION}/package.json"; then
+		LOG -e "Failed to set version for the Client project"
+		return 1
+  	fi
 }
