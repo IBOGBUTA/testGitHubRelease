@@ -91,7 +91,7 @@ set_client_version() {
 
 	local -r version="${1}"
 
-	if ! yq -i e '.version = \"${version}\"' "${CLIENT_LOCATION}/package.json"; then
+	if ! yq -i e '.version = "${version}"' "${CLIENT_LOCATION}/package.json"; then
 		LOG -e "Failed to set version for the Client project"
 		return 1
   	fi
