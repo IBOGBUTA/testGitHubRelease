@@ -105,6 +105,13 @@ git diff --exit-code --quiet .mvn/maven.config || git commit -m "[WF] Automatic 
 git tag "$future_rc_version$future_rc_qualifier" "$branch" >/dev/null 2>&1
 LOG "Actions done on branch $branch: New commit for the .mvn/maven.config changes, new tag $future_rc_version$future_rc_qualifier created." 
 
+# Update Helm Charts	
+chart_version="$future_rc_version$future_rc_qualifier"
+LOG "Helm chart will be set to use version: $chart_version"
+set_helm_chart_version "project" "${chart_version}" && LOG "Helm chart set to use version: $chart_version" || exit 1	
+# Will use the chart versioning for the client as well 
+set_client_version "${chart_version}" && LOG "Client set to use version: $chart_version" || exit 1
+
 # back to master branch to continue the job.
 git checkout master >/dev/null 2>&1
 
@@ -115,6 +122,12 @@ updateMavenConfig "$new_master_version" "$new_master_qualifier" &&
 git diff --exit-code --quiet .mvn/maven.config || git commit -m "Automatic update of Maven version to $new_master_version$new_master_qualifier" .mvn/maven.config
 git tag "$new_master_version$new_master_qualifier" master
 LOG "Actions done on master: New commit for the .mvn/maven.config changes, new tag $new_master_version$new_master_qualifier." 
+
+chart_version="$new_master_version$new_master_qualifier"
+LOG "Helm chart will be set to use version: $chart_version"
+set_helm_chart_version "project" "${chart_version}" && LOG "Helm chart set to use version: $chart_version" || exit 1	
+# Will use the chart versioning for the client as well 
+set_client_version "${chart_version}" && LOG "Client set to use version: $chart_version" || exit 1
 
 git checkout "$branch" >/dev/null 2>&1
 git push --set-upstream origin "$branch" >/dev/null 2>&1
