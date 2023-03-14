@@ -260,8 +260,7 @@ function buildPreparation() {
 	git tag "$new_rc_version$new_rc_qualifier" "$branch_name"
 	
 	# Get tag commit sha
-	TAG_SHA=$(git rev-parse $new_rc_version$new_rc_qualifier)
-	LOG "Helm charts will use sha $TAG_SHA"
+	TAG_SHA=$(git rev-parse $new_rc_version$new_rc_qualifier)	
 
 	# Update Helm Charts
 	current_date=$(date +'%Y%m%d.%H%M%S')
@@ -269,8 +268,7 @@ function buildPreparation() {
 		chart_version="$new_rc_version$new_rc_qualifier"
 	else
 		chart_version="$new_rc_version$new_rc_qualifier-SNAPSHOT-$current_date$TAG_SHA"
-	fi
-	LOG "Helm chart will be set to use version: $chart_version"
+	fi	
 	set_helm_chart_version "project" "${chart_version}" && LOG "Helm chart set to use version: $chart_version" || exit 1
 	
 	# Will use the chart versioning for the client as well 
