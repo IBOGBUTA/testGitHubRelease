@@ -70,9 +70,7 @@ jobs:
         echo "Release type will be final? Answer: ${{ github.event.inputs.final_release }}" 
         ON_BRANCH=$(git rev-parse --abbrev-ref HEAD)
         echo "Running on branch $ON_BRANCH"
-        
-        echo "Will use for this build the following SHA ${{ github.sha }}"
-        
+                       
         final=""
         if [[ ${{ github.event.inputs.final_release }} == "true" ]]; then
             final="final"

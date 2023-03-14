@@ -206,13 +206,13 @@ function updateForNextVersion() {
 	isHF=false
 	# get the major, minor, patch, RC and HF on branch 
 	if [[ $version =~ $TAG_PATTERN_RELEASE ]]; then
-		LOG -e "Request is to build new release candidate with version: $version"
+		LOG "Request is to build new release candidate with version: $version"
 		major=${BASH_REMATCH[1]}
 		minor=${BASH_REMATCH[2]}
 		patch=${BASH_REMATCH[3]}
 		rc=${BASH_REMATCH[4]}
 	elif [[ $version =~ $TAG_PATTERN_HOTFIX ]]; then
-		LOG -e "Request is to build new HF release candidate with version: $version"
+		LOG "Request is to build new HF release candidate with version: $version"
 		major=${BASH_REMATCH[1]}
 		minor=${BASH_REMATCH[2]}
 		patch=${BASH_REMATCH[3]}
@@ -220,12 +220,12 @@ function updateForNextVersion() {
 		rc=${BASH_REMATCH[5]}
 		isHF=true;
 	elif [[ $version =~ $TAG_PATTERN_FINAL_RELEASE && "$release_type" == $DEF_ARGV_FINAL ]]; then
-		LOG -e "Request is to build final release with version: $version"
+		LOG "Request is to build final release with version: $version"
 		major=${BASH_REMATCH[1]}
 		minor=${BASH_REMATCH[2]}
 		patch=${BASH_REMATCH[3]}
 	elif [[ $version =~ $TAG_PATTERN_FINAL_HOTFIX && "$release_type" == $DEF_ARGV_FINAL ]]; then
-		LOG -e "Request is to build final HF release with version: $version"
+		LOG "Request is to build final HF release with version: $version"
 		major=${BASH_REMATCH[1]}
 		minor=${BASH_REMATCH[2]}
 		patch=${BASH_REMATCH[3]}
