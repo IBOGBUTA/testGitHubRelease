@@ -3,6 +3,9 @@
 RUN_PATH=$(dirname "${BASH_SOURCE[0]}")
 source $RUN_PATH/common_release_functions.sh || { LOG -e "Cannot reach external resource $RUN_PATH/common_release_functions.sh. Will exit."; exit 1; }
 
+TAG_FORMAT_SNAPSHOT_RC="^[0-9]*+\.[0-9]*+\.[0-9]*+-((HF[0-9]+-RC[0-9]+)|(RC[0-9]+))-SNAPSHOT$"
+TAG_FORMAT_ON_MASTER="^[0-9]*+\.[0-9]*+\.[0-9]*+-SNAPSHOT$"
+
 TAG_PATTERN_RELEASE="^([0-9]+)\.([0-9]+)\.([0-9]+)-RC([0-9]+)$"
 TAG_PATTERN_HOTFIX="^([0-9]+)\.([0-9]+)\.([0-9]+)-HF([0-9]+)-RC([0-9]+)$"
 TAG_PATTERN_FINAL_RELEASE="^([0-9]+)\.([0-9]+)\.([0-9]+)$"
@@ -139,13 +142,25 @@ function buildCustomVersionPreparation() {
     	ref="$1"        
 	fi
 	
-	if [[ "$ref" == "master" || "$ref" =~ $BRANCH_PATTERN ]]; then
+	if [[ "$ref" == "master" ||  ]]; then
+        git fetch >/dev/null 2>&1
+        git checkout master >/dev/null 2>&1
+        git fetch --tags >/dev/null 2>&1
+        # get latest commit sha
+        COMMIT_SHA=$(git rev-parse master)
+        LOG -d "Build based on commit with sha $COMMIT_SHA"
+        tag=$(git for-each-ref --sort=-creatordate --format '%(refname:short)' refs/tags --merged master | grep -E $TAG_FORMAT_ON_MASTER | head -1)
+        LOG -d "Version files will be updated based on $tag"
+
+    elif [[ "$ref" =~ $BRANCH_PATTERN ]]; then
         git fetch >/dev/null 2>&1
         git checkout $ref >/dev/null 2>&1
         git fetch --tags >/dev/null 2>&1
         # get latest commit sha
         COMMIT_SHA=$(git rev-parse $ref)
-        LOG -d "Build based on commit with sha $COMMIT_SHA"
+        LOG -d "Build based on commit with sha $COMMIT_SHA" 
+        tag=$(git for-each-ref --sort=-creatordate --format '%(refname:short)' refs/tags --merged $branch_name | grep -E $TAG_FORMAT_SNAPSHOT_RC | head -1)
+        LOG -d "Version files will be updated based on $tag"
 
     else
         git fetch >/dev/null 2>&1
@@ -154,6 +169,7 @@ function buildCustomVersionPreparation() {
         # get tag commit sha
         TAG_SHA=$(git rev-parse $ref)
         LOG -d "Build based on tag with sha $TAG_SHA"
+        LOG -d "Version files will be updated based on $ref"
 
     fi
 }
