@@ -5,8 +5,7 @@ on:
     branches:
       - "VERSION-*"
     tags:
-      - '*'
-      #- '^[0-9]*\\.[0-9]*\\.[0-9]*(-(HF[0-9]+))?$'
+      - '^[0-9]*\\.[0-9]*\\.[0-9]*(-(HF[0-9]+))?$'
 
 jobs:
   create_release:
@@ -15,28 +14,29 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v2
 
-      - name: Get previous tag
-        id: prev_tag
-        run: echo ::set-output name=prev_tag::$(git describe --abbrev=0 $(git rev-list --tags='v*' --skip=1 --max-count=1))
+      #- name: Get previous tag
+      #  id: prev_tag
+      #  run: |
+      #    echo ::set-output name=prev_tag::$(git describe --abbrev=0 $(git rev-list --tags='v*' --skip=1 --max-count=1))
 
-      - name: Get current tag
-        id: current_tag
-        run: echo ::set-output name=current_tag::$(echo "${GITHUB_REF#refs/tags/}")
+      #- name: Get current tag
+      #  id: current_tag
+      #  run: echo ::set-output name=current_tag::$(echo "${GITHUB_REF#refs/tags/}")
 
-      - name: List commits between tags
-        id: commits
-        run: |
-          echo "Commits between ${prev_tag} and ${current_tag}:"
-          git log --pretty=format:"%h %s" ${prev_tag}...${current_tag}
+      #- name: List commits between tags
+      #  id: commits
+      #  run: |
+      #    echo "Commits between ${prev_tag} and ${current_tag}:"
+      #    git log --pretty=format:"%h %s" ${prev_tag}...${current_tag}
 
-      - name: Create Release
-        id: create_release
-        uses: actions/create-release@v1
-        with:
-          tag_name: ${{ steps.current_tag.outputs.current_tag }}
-          release_name: ${{ steps.current_tag.outputs.current_tag }}
-          body: |
-            Commits between ${prev_tag} and ${current_tag}:
-            ${{ steps.commits.outputs.commits }}
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      #- name: Create Release
+      #  id: create_release
+      #  uses: actions/create-release@v1
+      #  with:
+      #    tag_name: ${{ steps.current_tag.outputs.current_tag }}
+      #    release_name: ${{ steps.current_tag.outputs.current_tag }}
+      #    body: |
+      #      Commits between ${prev_tag} and ${current_tag}:
+      #      ${{ steps.commits.outputs.commits }}
+      #  env:
+      #    GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
