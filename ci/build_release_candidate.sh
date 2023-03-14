@@ -189,8 +189,8 @@ function buildPreparation() {
 		release_type="rc"
 	else
 		release_type="$2"
-		if [[ "$release_type" != "final" ]]; then
-			LOG -e "Release type argument can be empty or 'final'"
+		if [[ "$release_type" != $DEF_ARGV_FINAL ]]; then
+			LOG -e "Release type argument can be empty or '$DEF_ARGV_FINAL'"
 			exit 1
 		fi
 	fi
@@ -211,12 +211,12 @@ function buildPreparation() {
 		hf=${BASH_REMATCH[4]}
 		rc=${BASH_REMATCH[5]}
 		isHF=true;
-	elif [[ $version =~ ^([0-9]+)\.([0-9]+)\.([0-9]+)$ && "$release_type" == "final" ]]; then
+	elif [[ $version =~ ^([0-9]+)\.([0-9]+)\.([0-9]+)$ && "$release_type" == $DEF_ARGV_FINAL ]]; then
 		LOG "Request is to build final release with version: $version"
 		major=${BASH_REMATCH[1]}
 		minor=${BASH_REMATCH[2]}
 		patch=${BASH_REMATCH[3]}
-	elif [[ $version =~ ^([0-9]+)\.([0-9]+)\.([0-9]+)-HF([0-9]+)$ && "$release_type" == "final" ]]; then
+	elif [[ $version =~ ^([0-9]+)\.([0-9]+)\.([0-9]+)-HF([0-9]+)$ && "$release_type" == $DEF_ARGV_FINAL ]]; then
 		LOG "Request is to build final HF release with version: $version"
 		major=${BASH_REMATCH[1]}
 		minor=${BASH_REMATCH[2]}
@@ -238,13 +238,13 @@ function buildPreparation() {
 	# Setup RC tag for the build that just finished
 	new_rc_version="${major}.${minor}.${patch}"	
 	if [ "$isHF" == "false" ]; then		
-		if [[ "$release_type" == "final" ]]; then			
+		if [[ "$release_type" == $DEF_ARGV_FINAL ]]; then			
 			new_rc_qualifier=""
 		else			
 			new_rc_qualifier="-RC$rc"
 		fi
 	else		
-		if [[ "$release_type" == "final" ]]; then
+		if [[ "$release_type" == $DEF_ARGV_FINAL ]]; then
 			new_rc_qualifier="-HF$hf"
 		else
 			new_rc_qualifier="-HF$hf-RC$rc"
@@ -264,7 +264,7 @@ function buildPreparation() {
 	
 	# Update Helm Charts
 	current_date=$(date +'%Y%m%d.%H%M%S')
-	if [[ "$release_type" == "final" ]]; then
+	if [[ "$release_type" == $DEF_ARGV_FINAL ]]; then
 		chart_version="$new_rc_version$new_rc_qualifier"
 	else
 		chart_version="$new_rc_version$new_rc_qualifier-SNAPSHOT-$current_date$TAG_SHA"
@@ -305,7 +305,7 @@ function postBuildActions() {
 		release_type="rc"
 	else
 		release_type="$2"
-		if [[ "$release_type" != "final" ]]; then
+		if [[ "$release_type" != $DEF_ARGV_FINAL ]]; then
 			LOG -e "Release type argument can be empty or 'final'"
 			exit 1
 		fi
@@ -327,12 +327,12 @@ function postBuildActions() {
 		hf=${BASH_REMATCH[4]}
 		rc=${BASH_REMATCH[5]}
 		isHF=true;
-	elif [[ $version =~ ([0-9]+)\.([0-9]+)\.([0-9]+)$ && "$release_type" == "final" ]]; then
+	elif [[ $version =~ ([0-9]+)\.([0-9]+)\.([0-9]+)$ && "$release_type" == $DEF_ARGV_FINAL ]]; then
 		LOG -e "Request is to build final release with version: $version"
 		major=${BASH_REMATCH[1]}
 		minor=${BASH_REMATCH[2]}
 		patch=${BASH_REMATCH[3]}
-	elif [[ $version =~ ([0-9]+)\.([0-9]+)\.([0-9]+)-HF([0-9]+)$ && "$release_type" == "final" ]]; then
+	elif [[ $version =~ ([0-9]+)\.([0-9]+)\.([0-9]+)-HF([0-9]+)$ && "$release_type" == $DEF_ARGV_FINAL ]]; then
 		LOG -e "Request is to build final HF release with version: $version"
 		major=${BASH_REMATCH[1]}
 		minor=${BASH_REMATCH[2]}
@@ -353,20 +353,20 @@ function postBuildActions() {
 	
 	# Setup RC tag name for future development builds on this release branch
 	future_rc_version="${major}.${minor}.${patch}"
-	if [[ "$release_type" == "final" ]]; then
+	if [[ "$release_type" == $DEF_ARGV_FINAL ]]; then
 		rc="1"
 	else
 		((rc++))
 	fi	
 
 	if [ "$isHF" == "false" ]; then
-		if [[ "$release_type" == "final" ]]; then
+		if [[ "$release_type" == $DEF_ARGV_FINAL ]]; then
 			future_rc_qualifier="-HF1-RC$rc-SNAPSHOT"
 		else 
 			future_rc_qualifier="-RC$rc-SNAPSHOT"
 		fi	
 	else
-		if [[ "$release_type" == "final" ]]; then
+		if [[ "$release_type" == $DEF_ARGV_FINAL ]]; then
 			((hf++))
 		fi
 		future_rc_qualifier="-HF$hf-RC$rc-SNAPSHOT"
