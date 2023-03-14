@@ -2,9 +2,10 @@ name: Create Github Release
 
 on:
   push:
+    branches:
+      - "VERSION-*"
     tags:
-      - '*'
-      #- '^[0-9]*\\.[0-9]*\\.[0-9]*(-(HF[0-9]+))?$'
+      - '^[0-9]*\\.[0-9]*\\.[0-9]*(-(HF[0-9]+))?$'
 
 jobs:
   create_release:
