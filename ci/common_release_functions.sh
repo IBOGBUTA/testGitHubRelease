@@ -97,8 +97,9 @@ set_client_version() {
 		LOG -e "Failed to set version for the Client project"
 		return 1
 	else
-		LOG "Automatic update of Client Project to ${version} worked"
+		LOG -d "Automatic update of Client Project to ${version} worked"
   	fi
 
 	git commit -m "[WF] Automatic update of Client Project to ${version}" "${CLIENT_LOCATION}/package.json"
+	LOG -d "Client Project commit done"
 }
