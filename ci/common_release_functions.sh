@@ -83,6 +83,7 @@ set_helm_chart_version() {
   fi 
 
   git commit -m "[WF] Automatic update of Helm Charts to ${version}" "${HELM_CHARTS_LOCATION}/${chart}/Chart.yaml" "${HELM_CHARTS_LOCATION}/${chart}/values.yaml"
+  return 0
 }
 
 set_client_version() {
@@ -95,11 +96,9 @@ set_client_version() {
 
 	if ! yq -i e '.version = "${version}"' "${CLIENT_LOCATION}/package.json"; then
 		LOG -e "Failed to set version for the Client project"
-		return 1
-	else
-		LOG -d "Automatic update of Client Project to ${version} worked"
+		return 1	
   	fi
 
-	git commit -m "[WF] Automatic update of Client Project to ${version}" "${CLIENT_LOCATION}/package.json"
-	LOG -d "Client Project commit done"
+	git commit -m "[WF] Automatic update of Client Project to ${version}" "${CLIENT_LOCATION}/package.json"	
+	return 0
 }
