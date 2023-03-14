@@ -142,7 +142,7 @@ function buildCustomVersionPreparation() {
     	ref="$1"        
 	fi
 	
-	if [[ "$ref" == "master" ||  ]]; then
+	if [[ "$ref" == "master" ]]; then
         git fetch >/dev/null 2>&1
         git checkout master >/dev/null 2>&1
         git fetch --tags >/dev/null 2>&1
