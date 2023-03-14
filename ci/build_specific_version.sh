@@ -126,5 +126,5 @@ function buildNextRCPreparation() {
 
 ## buildCustomVersionPreparation()
 function buildCustomVersionPreparation() {
-
+    LOG -d "buildCustomVersionPreparation() - called"
 }
