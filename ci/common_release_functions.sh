@@ -96,6 +96,8 @@ set_client_version() {
 	if ! yq -i e '.version = "${version}"' "${CLIENT_LOCATION}/package.json"; then
 		LOG -e "Failed to set version for the Client project"
 		return 1
+	else
+		LOG "Automatic update of Client Project to ${version} worked"
   	fi
 
 	git commit -m "[WF] Automatic update of Client Project to ${version}" "${CLIENT_LOCATION}/package.json"
