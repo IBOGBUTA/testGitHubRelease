@@ -93,7 +93,7 @@ jobs:
             echo "- Restrictions for this build:                ${{ github.event.inputs.build_restrictions }}"
         else
             echo "Build will continue for version: $buildVersion"
-        fi        
+        fi
   build:
     if: ${{ github.event.inputs.dry_run != 'true' }}
     needs: prepare-release-candidate

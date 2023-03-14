@@ -8,6 +8,8 @@ TAG_PATTERN_HOTFIX="^([0-9]+)\.([0-9]+)\.([0-9]+)-HF([0-9]+)-RC([0-9]+)$"
 TAG_PATTERN_FINAL_RELEASE="^([0-9]+)\.([0-9]+)\.([0-9]+)$"
 TAG_PATTERN_FINAL_HOTFIX="^([0-9]+)\.([0-9]+)\.([0-9]+)-HF([0-9]+)$"
 
+BRANCH_PATTERN="^VERSION-([0-9]+)\.([0-9]+)\.([0-9]+)$"
+
 DEF_ARGV_FINAL="final"
 
 ## buildNextRCPreparation()
@@ -125,6 +127,33 @@ function buildNextRCPreparation() {
 }
 
 ## buildCustomVersionPreparation()
-function buildCustomVersionPreparation() {
-    LOG -d "buildCustomVersionPreparation() - called"
+function buildCustomVersionPreparation() {    
+    # Check if the current branch name matches the pattern master
+	runningOnMaster || { LOG -e "buildCustomVersionPreparation() can be called only from the master branch."; exit 1; }
+
+    # Get the checkout place for of the new build. Check if the argument exists
+	if [ -z "$1" ]; then
+    	LOG -e "Checkout details argument is missing"
+		exit 1
+	else
+    	ref="$1"        
+	fi
+	
+	if [[ "$ref" == "master" || "$ref" =~ $BRANCH_PATTERN ]]; then
+        git fetch >/dev/null 2>&1
+        checkout $ref >/dev/null 2>&1
+        git fetch --tags >/dev/null 2>&1
+        # get latest commit sha
+        COMMIT_SHA=$(git rev-parse $ref)
+        LOG -d "Will build based on sha $COMMIT_SHA"
+
+    else
+        git fetch >/dev/null 2>&1
+        checkout $ref >/dev/null 2>&1
+        git fetch --tags >/dev/null 2>&1
+        # get tag commit sha
+        TAG_SHA=$(git rev-parse $ref)
+        LOG -d "Will build based on sha $TAG_SHA"
+
+    fi
 }

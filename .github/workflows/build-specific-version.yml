@@ -52,7 +52,7 @@ jobs:
         source ci/common_release_functions.sh        
         CALLED_VIA_BUILDRC=false
         CHECKOUT_FROM=""
-        
+                
         if [[ "${{ inputs.build_base }}" == "current version on master" ]]; then
             echo "Will use latest version on master for build"
             CHECKOUT_FROM="master"
@@ -60,7 +60,7 @@ jobs:
             BRANCH="VERSION-${{ inputs.version }}"            
             branchExists $BRANCH && echo "Git branch '$BRANCH' exists in the remote repository. Will build here." || 
                     { echo "Error: Git branch '$BRANCH' does not exists in the remote repository";exit 1; }         
-            CHECKOUT_FROM="$BRANCH"                                               
+            CHECKOUT_FROM="$BRANCH"                                                          
         elif [[ "${{ inputs.build_base }}" == "specific version(tag)" ]]; then      
             TAG="${{ inputs.version }}"   
             tagExists $TAG && echo "Git tag '$TAG' exists in the remote repository. Will build here." || 
@@ -78,7 +78,7 @@ jobs:
         
         echo "CALLED_VIA_BUILDRC=$CALLED_VIA_BUILDRC" >> $GITHUB_ENV 
         echo "CHECKOUT_FROM=$CHECKOUT_FROM" >> $GITHUB_ENV 
-        
+                
     - name: Pre-build version preparation
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -88,20 +88,17 @@ jobs:
         git remote set-url origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/$GITHUB_REPOSITORY         
         ON_BRANCH=$(git rev-parse --abbrev-ref HEAD)
         echo "Running on branch $ON_BRANCH"
-        
-        if [[ "$CALLED_VIA_BUILDRC" == "true" ]]; then
-            source ci/build_specific_version.sh
+        source ci/build_specific_version.sh
+
+        if [[ "$CALLED_VIA_BUILDRC" == "true" ]]; then            
             if [[ "${{ inputs.build_base }}" == "final" ]]; then                
                 buildNextRCPreparation "${{ inputs.version }}" final
             else
                 buildNextRCPreparation "${{ inputs.version }}"
             fi
         else
-            echo "Workflow called via GitHub Action UI"
-            git fetch >/dev/null 2>&1;
-            git fetch --tags >/dev/null 2>&1;
-            git checkout $CHECKOUT_FROM >/dev/null 2>&1;
-            echo "Will continue build from here"
+            echo "Workflow called via GitHub Action UI"            
+            buildCustomVersionPreparation $CHECKOUT_FROM
         fi
         
     - name: Run build script
