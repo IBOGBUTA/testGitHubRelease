@@ -141,19 +141,19 @@ function buildCustomVersionPreparation() {
 	
 	if [[ "$ref" == "master" || "$ref" =~ $BRANCH_PATTERN ]]; then
         git fetch >/dev/null 2>&1
-        checkout $ref >/dev/null 2>&1
+        git checkout $ref >/dev/null 2>&1
         git fetch --tags >/dev/null 2>&1
         # get latest commit sha
         COMMIT_SHA=$(git rev-parse $ref)
-        LOG -d "Will build based on sha $COMMIT_SHA"
+        LOG -d "Build based on commit with sha $COMMIT_SHA"
 
     else
         git fetch >/dev/null 2>&1
-        checkout $ref >/dev/null 2>&1
+        git checkout $ref >/dev/null 2>&1
         git fetch --tags >/dev/null 2>&1
         # get tag commit sha
         TAG_SHA=$(git rev-parse $ref)
-        LOG -d "Will build based on sha $TAG_SHA"
+        LOG -d "Build based on tag with sha $TAG_SHA"
 
     fi
 }
