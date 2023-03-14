@@ -257,7 +257,7 @@ function buildPreparation() {
 	
 	# Create the tag here, don't push
 	git diff --exit-code --quiet .mvn/maven.config || git commit -m "[WF] Automatic update of version to $new_rc_version$new_rc_qualifier" .mvn/maven.config
-	git tag "$new_rc_version$new_rc_qualifier" "$branch_name"
+	git tag "$new_rc_version$new_rc_qualifier" "$branch_name" >/dev/null 2>&1
 	
 	# Get tag commit sha
 	TAG_SHA=$(git rev-parse $new_rc_version$new_rc_qualifier)	
@@ -347,9 +347,9 @@ function postBuildActions() {
 	branch_name="VERSION-${major}.${minor}.${patch}"	
     branchExists $branch_name && { LOG "Branch $branch_name exists. Script can continue."; } || { LOG -e "Branch $branch_name doesn't exist. Will exit."; exit 1; }	
 			
-	git fetch
-	git checkout $branch_name
-	git fetch --tags
+	git fetch >/dev/null 2>&1
+	git checkout $branch_name >/dev/null 2>&1
+	git fetch --tags >/dev/null 2>&1
 	
 	# Setup RC tag name for future development builds on this release branch
 	future_rc_version="${major}.${minor}.${patch}"
@@ -386,8 +386,8 @@ function postBuildActions() {
 	# Will use the chart versioning for the client as well 
 	set_client_version "${chart_version}" && LOG "Client set to use version: $chart_version" || exit 1
 
-	git push --tags 
-	git push	
+	git push --tags >/dev/null 2>&1
+	git push >/dev/null 2>&1
 }
 
 function preBuildPreparation() {
