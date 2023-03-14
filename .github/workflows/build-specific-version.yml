@@ -90,11 +90,11 @@ jobs:
         echo "Running on branch $ON_BRANCH"
         
         if [[ "$CALLED_VIA_BUILDRC" == "true" ]]; then
-            source ci/build_release_candidate.sh
+            source ci/build_specific_version.sh
             if [[ "${{ inputs.build_base }}" == "final" ]]; then                
-                buildPreparation "${{ inputs.version }}" final
+                buildNextRCPreparation "${{ inputs.version }}" final
             else
-                buildPreparation "${{ inputs.version }}"
+                buildNextRCPreparation "${{ inputs.version }}"
             fi
         else
             echo "Workflow called via GitHub Action UI"
@@ -120,8 +120,7 @@ jobs:
       run: |
         ON_BRANCH=$(git rev-parse --abbrev-ref HEAD)
         echo "Running on branch $ON_BRANCH"
-        if [[ "$CALLED_VIA_BUILDRC" == "true" ]]; then
-            source ci/build_release_candidate.sh            
+        if [[ "$CALLED_VIA_BUILDRC" == "true" ]]; then                      
             # wil save version changes and build tag here
             git push --tags 
             git push

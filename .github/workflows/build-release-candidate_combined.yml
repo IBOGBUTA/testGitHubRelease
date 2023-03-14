@@ -134,7 +134,7 @@ jobs:
           #make sure to run on master
           git checkout master
           source ci/build_release_candidate.sh 
-          postBuildActions "${{ needs.prepare-release-candidate.outputs.buildVersion }}" $final
+          updateForNextVersion "${{ needs.prepare-release-candidate.outputs.buildVersion }}" $final
         else
           echo "Error: Return code of the build job was $?"
           exit $buildRC
