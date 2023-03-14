@@ -258,10 +258,10 @@ function buildPreparation() {
 	# Create the tag here, don't push
 	git diff --exit-code --quiet .mvn/maven.config || git commit -m "[WF] Automatic update of version to $new_rc_version$new_rc_qualifier" .mvn/maven.config
 	git tag "$new_rc_version$new_rc_qualifier" "$branch_name" >/dev/null 2>&1
-	
+	LOG -d "checkpoint 1"
 	# Get tag commit sha
 	TAG_SHA=$(git rev-parse $new_rc_version$new_rc_qualifier)	
-
+	LOG -d "checkpoint 2"
 	# Update Helm Charts
 	current_date=$(date +'%Y%m%d.%H%M%S')
 	if [[ "$release_type" == "final" ]]; then
@@ -270,10 +270,10 @@ function buildPreparation() {
 		chart_version="$new_rc_version$new_rc_qualifier-SNAPSHOT-$current_date$TAG_SHA"
 	fi	
 	set_helm_chart_version "project" "${chart_version}" && LOG "Helm chart set to use version: $chart_version" || exit 1
-	
+	LOG -d "checkpoint 3"
 	# Will use the chart versioning for the client as well 
 	set_client_version "${chart_version}" && LOG "Client set to use version: $chart_version" || exit 1
-
+	LOG -d "checkpoint 4"
 	LOG "Version files are ready. Build can continue."	
 	return 0
 }
