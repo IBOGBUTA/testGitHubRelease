@@ -237,7 +237,7 @@ function buildCustomVersionPreparation() {
 
 		# Update Helm Charts
 		current_date=$(date +'%Y%m%d.%H%M%S')
-		chart_version="$ref-$current_date$COMMIT_SHA"		
+		chart_version="$ref-$current_date$TAG_SHA"
 		set_helm_chart_version "project" "${chart_version}" "no-commit" && LOG "Helm chart set to use version: $chart_version" || exit 1
 
 		# Will use the chart versioning for the client as well 
