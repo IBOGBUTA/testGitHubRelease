@@ -64,26 +64,37 @@ updateMavenConfig() {
 }
 
 set_helm_chart_version() {
-  if [ $# -ne 2 ]; then
-		LOG -e "set_helm_chart_version() - Invalid number of parameters provided. Expected 2, received $#."
+	if [ $# -ne 2 ]; then
+			LOG -e "set_helm_chart_version() - Invalid number of parameters provided. Expected 2, received $#."
+			return 1
+	fi
+	if [ -z "$3" ]; then
+		commit=true
+	else		
+		if [[ "$3" == "no-commit" ]]; then
+			commit=false
+			LOG -d "set_helm_chart_version(): Version file will be updated. Commit will be skipped."
+		fi
+	fi
+
+	local -r chart="${1}"
+	local -r version="${2}"
+
+	if ! yq  -i e ".version = \"${version}\"" "${HELM_CHARTS_LOCATION}/${chart}/Chart.yaml"; then
+		LOG -e "Failed to set helm chart version to ${version}"
 		return 1
-  fi
-  
-  local -r chart="${1}"
-  local -r version="${2}"
+	fi
 
-  if ! yq  -i e ".version = \"${version}\"" "${HELM_CHARTS_LOCATION}/${chart}/Chart.yaml"; then
-    LOG -e "Failed to set helm chart version to ${version}"
-    return 1
-  fi
+	if ! yq  -i e ".image.version = \"${version}\"" "${HELM_CHARTS_LOCATION}/${chart}/values.yaml"; then
+		LOG -e "Failed to set helm chart image version to ${version}"
+		return 1
+	fi 
 
-  if ! yq  -i e ".image.version = \"${version}\"" "${HELM_CHARTS_LOCATION}/${chart}/values.yaml"; then
-    LOG -e "Failed to set helm chart image version to ${version}"
-    return 1
-  fi 
-
-  git commit -m "[WF] Automatic update of Helm Charts to ${version}" "${HELM_CHARTS_LOCATION}/${chart}/Chart.yaml" "${HELM_CHARTS_LOCATION}/${chart}/values.yaml"
-  return 0
+	if [[ "$commit" != "false" ]]; then
+		git commit -m "[WF] Automatic update of Helm Charts to ${version}" "${HELM_CHARTS_LOCATION}/${chart}/Chart.yaml" "${HELM_CHARTS_LOCATION}/${chart}/values.yaml"
+	fi
+	
+	return 0
 }
 
 set_client_version() {
@@ -91,6 +102,14 @@ set_client_version() {
 		LOG -e "set_client_version() - Invalid number of parameters provided. Expected 1, received $#."
 		return 1
   	fi
+	if [ -z "$2" ]; then
+		commit=true
+	else		
+		if [[ "$2" == "no-commit" ]]; then
+			commit=false
+			LOG -d "set_client_version(): Version file will be updated. Commit will be skipped."
+		fi
+	fi
 
 	local -r version="${1}"
 
@@ -99,6 +118,9 @@ set_client_version() {
 		return 1	
   	fi
 
-	git commit -m "[WF] Automatic update of Client Project to ${version}" "${CLIENT_LOCATION}/package.json"	
+	if [[ "$commit" != "false" ]]; then
+		git commit -m "[WF] Automatic update of Client Project to ${version}" "${CLIENT_LOCATION}/package.json"	
+	fi
+
 	return 0
 }

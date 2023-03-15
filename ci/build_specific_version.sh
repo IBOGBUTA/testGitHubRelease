@@ -6,10 +6,13 @@ source $RUN_PATH/common_release_functions.sh || { LOG -e "Cannot reach external 
 TAG_FORMAT_SNAPSHOT_RC="^[0-9]*+\.[0-9]*+\.[0-9]*+-((HF[0-9]+-RC[0-9]+)|(RC[0-9]+))-SNAPSHOT$"
 TAG_FORMAT_ON_MASTER="^[0-9]*+\.[0-9]*+\.[0-9]*+-SNAPSHOT$"
 
+TAG_PATTERN_ON_MASTER="([0-9]+)\.([0-9]+)\.([0-9]+)-SNAPSHOT"
 TAG_PATTERN_RELEASE="^([0-9]+)\.([0-9]+)\.([0-9]+)-RC([0-9]+)$"
 TAG_PATTERN_HOTFIX="^([0-9]+)\.([0-9]+)\.([0-9]+)-HF([0-9]+)-RC([0-9]+)$"
 TAG_PATTERN_FINAL_RELEASE="^([0-9]+)\.([0-9]+)\.([0-9]+)$"
 TAG_PATTERN_FINAL_HOTFIX="^([0-9]+)\.([0-9]+)\.([0-9]+)-HF([0-9]+)$"
+TAG_PATTERN_SNAPSHOT_RELEASE="^([0-9]+)\.([0-9]+)\.([0-9]+)-RC([0-9]+)-SNAPSHOT$"
+TAG_PATTERN_SNAPSHOT_HOTFIX="^([0-9]+)\.([0-9]+)\.([0-9]+)-HF([0-9]+)-RC([0-9]+)-SNAPSHOT$"
 
 BRANCH_PATTERN="^VERSION-([0-9]+)\.([0-9]+)\.([0-9]+)$"
 
@@ -151,6 +154,29 @@ function buildCustomVersionPreparation() {
         LOG -d "Build based on commit with sha $COMMIT_SHA"
         tag=$(git for-each-ref --sort=-creatordate --format '%(refname:short)' refs/tags --merged master | grep -E $TAG_FORMAT_ON_MASTER | head -1)
         LOG -d "Version files will be updated based on $tag"
+		
+		# Update the Maven version
+		# get the major, minor, and patch
+		if [[ $tag =~ $TAG_PATTERN_ON_MASTER ]]; then
+			major=${BASH_REMATCH[1]}
+			minor=${BASH_REMATCH[2]}
+			patch=${BASH_REMATCH[3]}
+		else
+			LOG -e "Latest tag on master ($tag) is not in the correct format." >&2
+			exit 1
+		fi
+		master_version="${major}.${minor}.${patch}"
+		master_qualifier="SNAPSHOT"
+		updateMavenConfig "$master_version" "$master_qualifier" || LOG "Maven version set to $master_version$master_qualifier (no commit)" || exit 1
+
+		# Update Helm Charts
+		current_date=$(date +'%Y%m%d.%H%M%S')
+		# master tag will contain SNAPSHOT in its name
+		chart_version="$tag-$current_date$COMMIT_SHA"		
+		set_helm_chart_version "project" "${chart_version}" "no-commit" && LOG "Helm chart set to use version: $chart_version" || exit 1
+
+		# Will use the chart versioning for the client as well 
+		set_client_version "${chart_version}" "no-commit" && LOG "Client set to use version: $chart_version" || exit 1
 
     elif [[ "$ref" =~ $BRANCH_PATTERN ]]; then
         git fetch >/dev/null 2>&1
@@ -162,6 +188,42 @@ function buildCustomVersionPreparation() {
         tag=$(git for-each-ref --sort=-creatordate --format '%(refname:short)' refs/tags --merged $branch_name | grep -E $TAG_FORMAT_SNAPSHOT_RC | head -1)
         LOG -d "Version files will be updated based on $tag"
 
+		isHF=false
+		# get the major, minor, patch, RC and HF on else branch 
+		if [[ $tag =~ $TAG_PATTERN_SNAPSHOT_RELEASE ]]; then
+			major=${BASH_REMATCH[1]}
+			minor=${BASH_REMATCH[2]}
+			patch=${BASH_REMATCH[3]}
+			rc=${BASH_REMATCH[4]}
+		elif [[ $tag =~ $TAG_PATTERN_SNAPSHOT_HOTFIX ]]; then
+			major=${BASH_REMATCH[1]}
+			minor=${BASH_REMATCH[2]}
+			patch=${BASH_REMATCH[3]}
+			hf=${BASH_REMATCH[4]}
+			rc=${BASH_REMATCH[5]}
+			isHF=true;
+		else
+			LOG -e "tag ($tag) is not in the correct format" >&2
+			exit 1
+		fi
+
+		rc_version="${major}.${minor}.${patch}"
+		if [ "$isHF" == "false" ]; then			
+			rc_qualifier="-RC$rc-SNAPSHOT"			
+		else			
+			rc_qualifier="-HF$hf-RC$rc-SNAPSHOT"		
+		fi
+
+		updateMavenConfig "$rc_version" "$rc_qualifier" || LOG "Maven version set to $rc_version$rc_qualifier (no commit)" || exit 1
+
+		# Update Helm Charts
+		current_date=$(date +'%Y%m%d.%H%M%S')
+		# branch tag will contain SNAPSHOT in its name
+		chart_version="$tag-$current_date$COMMIT_SHA"		
+		set_helm_chart_version "project" "${chart_version}" "no-commit" && LOG "Helm chart set to use version: $chart_version" || exit 1
+
+		# Will use the chart versioning for the client as well 
+		set_client_version "${chart_version}" "no-commit" && LOG "Client set to use version: $chart_version" || exit 1
     else
         git fetch >/dev/null 2>&1
         git checkout $ref >/dev/null 2>&1
@@ -171,5 +233,14 @@ function buildCustomVersionPreparation() {
         LOG -d "Build based on tag with sha $TAG_SHA"
         LOG -d "Version files will be updated based on $ref"
 
+		# Maven is already prepared at this point
+
+		# Update Helm Charts
+		current_date=$(date +'%Y%m%d.%H%M%S')
+		chart_version="$ref-$current_date$COMMIT_SHA"		
+		set_helm_chart_version "project" "${chart_version}" "no-commit" && LOG "Helm chart set to use version: $chart_version" || exit 1
+
+		# Will use the chart versioning for the client as well 
+		set_client_version "${chart_version}" "no-commit" && LOG "Client set to use version: $chart_version" || exit 1
     fi
 }
