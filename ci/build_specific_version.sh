@@ -151,8 +151,8 @@ function buildCustomVersionPreparation() {
         git fetch --tags >/dev/null 2>&1
         # get latest commit sha
         COMMIT_SHA=$(git rev-parse master)
-        LOG -d "Build based on commit with sha $COMMIT_SHA"
-        tag=$(git for-each-ref --sort=-creatordate --format '%(refname:short)' refs/tags --merged master | grep -E $TAG_FORMAT_ON_MASTER | head -1)
+        LOG -d "Build based on commit with sha $COMMIT_SHA"        
+		tag=$(git tag --sort=-v:refname | grep -E $TAG_FORMAT_ON_MASTER | head -n1)
         LOG -d "Version files will be updated based on $tag"
 		
 		# Update the Maven version
