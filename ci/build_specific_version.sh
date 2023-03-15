@@ -114,14 +114,18 @@ function buildNextRCPreparation() {
 	git tag "$new_rc_version$new_rc_qualifier" "$branch_name" >/dev/null 2>&1
 	
 	# Get tag commit sha
-	TAG_SHA=$(git rev-parse $new_rc_version$new_rc_qualifier)	
+	TAG_SHA=$(git rev-parse --short $new_rc_version$new_rc_qualifier)	
 	
 	# Update Helm Charts
 	current_date=$(date +'%Y%m%d.%H%M%S')
 	if [[ "$release_type" == $DEF_ARGV_FINAL ]]; then
 		chart_version="$new_rc_version$new_rc_qualifier"
 	else
-		chart_version="$new_rc_version$new_rc_qualifier-SNAPSHOT-$current_date$TAG_SHA"
+		# Initial version
+		#chart_version="$new_rc_version$new_rc_qualifier-SNAPSHOT-$current_date$TAG_SHA"
+		# New request on 15.03.2023
+		chart_version="$new_rc_version$new_rc_qualifier-$current_date$TAG_SHA"
+
 	fi	
 	set_helm_chart_version "project" "${chart_version}" && LOG "Helm chart set to use version: $chart_version" || exit 1
 	
@@ -150,7 +154,7 @@ function buildCustomVersionPreparation() {
         git checkout master >/dev/null 2>&1
         git fetch --tags >/dev/null 2>&1
         # get latest commit sha
-        COMMIT_SHA=$(git rev-parse master)
+        COMMIT_SHA=$(git rev-parse --short master)
         LOG -d "Build based on commit with sha $COMMIT_SHA"        
 		tag=$(git tag --sort=-v:refname | grep -E $TAG_FORMAT_ON_MASTER | head -n1)
         LOG -d "Version files will be updated based on $tag"
@@ -183,7 +187,7 @@ function buildCustomVersionPreparation() {
         git checkout $ref >/dev/null 2>&1
         git fetch --tags >/dev/null 2>&1
         # get latest commit sha
-        COMMIT_SHA=$(git rev-parse $ref)
+        COMMIT_SHA=$(git rev-parse --short $ref)
         LOG -d "Build based on commit with sha $COMMIT_SHA" 
         tag=$(git for-each-ref --sort=-creatordate --format '%(refname:short)' refs/tags --merged $branch_name | grep -E $TAG_FORMAT_SNAPSHOT_RC | head -1)
         LOG -d "Version files will be updated based on $tag"
@@ -229,7 +233,7 @@ function buildCustomVersionPreparation() {
         git checkout $ref >/dev/null 2>&1
         git fetch --tags >/dev/null 2>&1
         # get tag commit sha
-        TAG_SHA=$(git rev-parse $ref)
+        TAG_SHA=$(git rev-parse --short $ref)
         LOG -d "Build based on tag with sha $TAG_SHA"
         LOG -d "Version files will be updated based on $ref"
 
