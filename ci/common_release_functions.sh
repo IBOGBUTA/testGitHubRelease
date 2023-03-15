@@ -64,7 +64,7 @@ updateMavenConfig() {
 }
 
 set_helm_chart_version() {
-	if [ $# -ne 2 ]; then
+	if [ $# -lt 2 ]; then
 			LOG -e "set_helm_chart_version() - Invalid number of parameters provided. Expected 2, received $#."
 			return 1
 	fi
@@ -98,7 +98,7 @@ set_helm_chart_version() {
 }
 
 set_client_version() {
-	if [ $# -ne 1 ]; then
+	if [ $# -lt 1 ]; then
 		LOG -e "set_client_version() - Invalid number of parameters provided. Expected 1, received $#."
 		return 1
   	fi
