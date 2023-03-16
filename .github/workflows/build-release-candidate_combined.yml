@@ -162,8 +162,8 @@ jobs:
         echo "CHANGELOG<<EOF" >> $GITHUB_ENV
         echo "$cl" >> $GITHUB_ENV
         echo "EOF" >> $GITHUB_ENV
-        
-        echo "env: "
+    - name: Print changelog
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
         echo "${{ env.CHANGELOG }}"
-
-        
