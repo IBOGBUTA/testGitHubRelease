@@ -156,4 +156,5 @@ jobs:
     - name: List commits for this release      
       run: |
         source ci/build_release_candidate.sh
-        getChangelog "${{ needs.prepare-release-candidate.outputs.buildVersion }}"
+        changeLog=$(getChangelog "${{ needs.prepare-release-candidate.outputs.buildVersion }}")
+        echo "CHANGELOG=$changeLog" >> $GITHUB_ENV

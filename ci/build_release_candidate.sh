@@ -340,13 +340,16 @@ function getChangelog() {
     branchExists $branch_name && { LOG "Branch $branch_name exists. Script can continue."; } || { LOG -e "Branch $branch_name doesn't exist. Will exit."; exit 1; }	
 
 	# The tags should already exist at this point, double-check here
-	tagExists $version && LOG "Git tag '$version' exists in the remote repository." || 
-            { LOG -e "Git tag '$version' does not exists in the remote repository";exit 1; }
-	tagExists $prev_tag && LOG "Git tag '$prev_tag' exists in the remote repository." || 
-            { LOG -e "Git tag '$prev_tag' does not exists in the remote repository";exit 1; }
+	tagExists $version || { LOG -e "Git tag '$version' does not exists in the remote repository";exit 1; }
+	tagExists $prev_tag || { LOG -e "Git tag '$prev_tag' does not exists in the remote repository";exit 1; }
 	
+	git fetch >/dev/null 2>&1
+	git checkout $branch_name >/dev/null 2>&1
+	git fetch --tags >/dev/null 2>&1
+	changelog=$(git log --pretty=format:"%s" ${prev_tag}...${version} | grep -E "^\[W")
+	
+	git checkout master
 
-	changelog=$(git log --pretty=format:"%h %s" ${prev_tag}...${version})
-
-	LOG $changelog
+	echo $changelog
+	return 0	
 }
