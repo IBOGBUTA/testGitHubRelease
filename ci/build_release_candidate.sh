@@ -348,7 +348,7 @@ function getChangelog() {
 	git fetch --tags >/dev/null 2>&1
 	changelog=$(git log --pretty=format:"%s" ${prev_tag}...${version} | grep -E "^\[W")
 	
-	git checkout master
+	git checkout master 2>&1
 
 	echo $changelog
 	return 0	
