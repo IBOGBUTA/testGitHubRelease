@@ -170,3 +170,9 @@ jobs:
         echo "$EOF" >> $GITHUB_ENV
         echo "env: "
         echo ${{ env.TEST }}
+
+        echo "TEST2" << "$EOF" >> $GITHUB_ENV
+        test content
+        $EOF
+        echo "env: "
+        echo ${{ env.TEST2 }}
