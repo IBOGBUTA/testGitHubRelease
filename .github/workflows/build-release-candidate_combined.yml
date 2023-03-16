@@ -151,7 +151,7 @@ jobs:
       run: sudo apt-get update && sudo apt-get install -y git
     - name: GIT comitter configuration
       run: git config --global user.email "glaucio.porcidesczekailo@atos.net" && git config --global user.name "Glaucio Czekailo"
-    - name: List commits for this release  
+    - name: Get commits for this release  
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
@@ -162,8 +162,23 @@ jobs:
         echo "CHANGELOG<<EOF" >> $GITHUB_ENV
         echo "$cl" >> $GITHUB_ENV
         echo "EOF" >> $GITHUB_ENV
+
+        TAG_SHA=$(git rev-parse --short $ref)
+        echo "TAGSHA=$TAG_SHA" >> $GITHUB_ENV
     - name: Print changelog
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
         echo "${{ env.CHANGELOG }}"
+    - name: Create Release
+      id: create_release
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        target_commitish: ${{ env.TAGSHA }}
+        release_name: ${{ needs.prepare-release-candidate.outputs.buildVersion }}
+        body: |
+          Commits included in ${{ needs.prepare-release-candidate.outputs.buildVersion }}:
+            ${{ env.CHANGELOG }}
+        
