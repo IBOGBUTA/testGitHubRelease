@@ -164,3 +164,9 @@ jobs:
         echo "$EOF" >> $GITHUB_ENV
         echo "env: "
         echo ${{ env.CHANGELOG }} 
+
+        echo "TEST<<$EOF" >> $GITHUB_ENV
+        echo "test content" >> $GITHUB_ENV
+        echo "$EOF" >> $GITHUB_ENV
+        echo "env: "
+        echo ${{ env.TEST }}
