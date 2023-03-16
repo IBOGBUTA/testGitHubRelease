@@ -337,7 +337,7 @@ function getChangelog() {
 	fi
 
 	branch_name="VERSION-${major}.${minor}.${patch}"	
-    branchExists $branch_name && { LOG "Branch $branch_name exists. Script can continue."; } || { LOG -e "Branch $branch_name doesn't exist. Will exit."; exit 1; }	
+    branchExists $branch_name || { LOG -e "Branch $branch_name doesn't exist. Will exit."; exit 1; }	
 
 	# The tags should already exist at this point, double-check here
 	tagExists $version || { LOG -e "Git tag '$version' does not exists in the remote repository";exit 1; }
@@ -348,7 +348,7 @@ function getChangelog() {
 	git fetch --tags >/dev/null 2>&1
 	changelog=$(git log --pretty=format:"%s" ${prev_tag}...${version} | grep -E "^\[W")
 	
-	git checkout master 2>&1
+	git checkout master >/dev/null 2>&1
 
 	echo "$changelog"
 	return 0	
