@@ -153,7 +153,9 @@ jobs:
       run: |
         git config --global user.email "glaucio.porcidesczekailo@atos.net"
         git config --global user.name "Glaucio Czekailo"
-    - name: List commits for this release      
+    - name: List commits for this release  
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
         source ci/build_release_candidate.sh
         changeLog=$(getChangelog "${{ needs.prepare-release-candidate.outputs.buildVersion }}")
