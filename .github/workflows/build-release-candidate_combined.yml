@@ -159,3 +159,4 @@ jobs:
         changelog=$(getChangelog "${{ needs.prepare-release-candidate.outputs.buildVersion }}")
         #echo "Result: $changelog"
         echo 'CHANGELOG=$changelog' >> $GITHUB_ENV
+        echo $CHANGELOG
