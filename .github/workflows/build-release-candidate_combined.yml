@@ -158,5 +158,5 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
         source ci/build_release_candidate.sh
-        changeLog=$(getChangelog "${{ needs.prepare-release-candidate.outputs.buildVersion }}")
-        echo "CHANGELOG=$changeLog" >> $GITHUB_ENV
+        changelog=$(getChangelog "${{ needs.prepare-release-candidate.outputs.buildVersion }}")
+        echo "CHANGELOG=$changelog" >> $GITHUB_ENV
