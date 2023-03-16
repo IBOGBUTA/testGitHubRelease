@@ -1,4 +1,4 @@
-name: Create Github Release
+name: Print multiline env
 
 on:
   workflow_dispatch:
@@ -8,17 +8,19 @@ on:
 jobs:
   create_release:
     runs-on: ubuntu-latest
+    env:
+      MULTI_LINES_TEXT_ENV_VAR: ${{ steps.set_env.outputs.multi_lines_text_env_var }}
     steps:
-      - name: just a test
+      - name: Set env variable with multi-line text
+        id: set_env
         run: |
-          echo "MULTI_LINES_TEXT_ENV_VAR<<EOF" >> $GITHUB_ENV  
-          # here we can place the command that will generate multi-line text
-          echo $MULTI_LINES_TEXT >> $GITHUB_ENV   
-          echo "EOF" >> $GITHUB_ENV
-      - name: print the env
+          echo "MULTI_LINES_TEXT_ENV_VAR=$(cat somefile)" >> $GITHUB_ENV
+          echo "::set-output name=multi_lines_text_env_var::${MULTI_LINES_TEXT_ENV_VAR}"
+      - name: Print env variable
         run: |
-          echo "env: "
-          echo ${{ env.MULTI_LINES_TEXT_ENV_VAR }}
+          echo "Multi-line text:"
+          echo "${MULTI_LINES_TEXT_ENV_VAR}"
+
 
       #- name: Checkout code
       #  uses: actions/checkout@v2
