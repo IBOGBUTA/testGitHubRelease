@@ -124,7 +124,7 @@ function buildNextRCPreparation() {
 		# Initial version
 		#chart_version="$new_rc_version$new_rc_qualifier-SNAPSHOT-$current_date$TAG_SHA"
 		# New request on 15.03.2023
-		chart_version="$new_rc_version$new_rc_qualifier-$current_date$TAG_SHA"
+		chart_version="$new_rc_version$new_rc_qualifier-$current_date"_"$TAG_SHA"
 
 	fi	
 	set_helm_chart_version "project" "${chart_version}" && LOG "Helm chart set to use version: $chart_version" || exit 1
@@ -223,7 +223,7 @@ function buildCustomVersionPreparation() {
 		# Update Helm Charts
 		current_date=$(date +'%Y%m%d.%H%M%S')
 		# branch tag will contain SNAPSHOT in its name
-		chart_version="$tag-$current_date$COMMIT_SHA"		
+		chart_version="$tag-$current_date"_"$COMMIT_SHA"		
 		set_helm_chart_version "project" "${chart_version}" "no-commit" && LOG "Helm chart set to use version: $chart_version" || exit 1
 
 		# Will use the chart versioning for the client as well 
@@ -241,7 +241,7 @@ function buildCustomVersionPreparation() {
 
 		# Update Helm Charts
 		current_date=$(date +'%Y%m%d.%H%M%S')
-		chart_version="$ref-$current_date$TAG_SHA"
+		chart_version="$ref-$current_date"_"$TAG_SHA"
 		set_helm_chart_version "project" "${chart_version}" "no-commit" && LOG "Helm chart set to use version: $chart_version" || exit 1
 
 		# Will use the chart versioning for the client as well 
