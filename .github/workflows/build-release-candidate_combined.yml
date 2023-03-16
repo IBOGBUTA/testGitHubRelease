@@ -165,14 +165,12 @@ jobs:
         echo "env: "
         echo ${{ env.CHANGELOG }} 
 
-        echo "TEST<<$EOF" >> $GITHUB_ENV
-        echo "test content" >> $GITHUB_ENV
-        echo "$EOF" >> $GITHUB_ENV
-        echo "env: "
-        echo ${{ env.TEST }}
-
-        echo "TEST2" << "$EOF" >> $GITHUB_ENV
-        test content
-        $EOF
-        echo "env: "
-        echo ${{ env.TEST2 }}
+        MULTI_LINES_TEXT="this is line one \n
+                  this is line two \n
+                  this is line three \n"
+        
+        echo "MULTI_LINES_TEXT_ENV_VAR<<EOF" >> $GITHUB_ENV  
+        # here we can place the command that will generate multi-line text
+        echo $MULTI_LINES_TEXT >> $GITHUB_ENV   
+        echo "EOF" >> $GITHUB_ENV
+        echo ${{ env.MULTI_LINES_TEXT_ENV_VAR }}
