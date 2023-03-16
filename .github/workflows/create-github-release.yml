@@ -25,12 +25,12 @@ jobs:
 
           echo "MULTI_LINES_TEXT_ENV_VAR<<EOF" >> $GITHUB_ENV  
           # here we can place the command that will generate multi-line text
-          echo $MULTI_LINES_TEXT >> $GITHUB_ENV   
+          echo "$MULTI_LINES_TEXT" >> $GITHUB_ENV   
           echo "EOF" >> $GITHUB_ENV
       - name: print the env
         run: |
           echo "env:"
-          echo '${{ env.MULTI_LINES_TEXT_ENV_VAR }}'
+          echo "${{ env.MULTI_LINES_TEXT_ENV_VAR }}"
       - name: another test        
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
