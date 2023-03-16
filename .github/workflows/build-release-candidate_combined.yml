@@ -136,4 +136,24 @@ jobs:
         else
           echo "Error: Return code of the build job was $?"
           exit $buildRC
-        fi        
+        fi     
+
+  create-GH-release:
+    if: ${{ github.event.inputs.dry_run != 'true' }}
+    needs: [prepare-release-candidate, build, update-tags-versions]
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+    - name: Install Git
+      run: sudo apt-get update && sudo apt-get install -y git
+    - name: GIT comitter configuration
+      run: |
+        git config --global user.email "glaucio.porcidesczekailo@atos.net"
+        git config --global user.name "Glaucio Czekailo"
+    - name: List commits for this release      
+      run: |
+        source ci/build_release_candidate.sh
+        getChangelog "${{ needs.prepare-release-candidate.outputs.buildVersion }}"

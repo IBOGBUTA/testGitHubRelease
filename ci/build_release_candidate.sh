@@ -281,3 +281,72 @@ function updateForNextVersion() {
 	git push --tags >/dev/null 2>&1
 	git push >/dev/null 2>&1
 }
+
+## getPreviousReleaseTag()
+## Will retieve the previous tag based on the format of the current tag
+### Examples: 
+### 3.0.0-RC1 is built => commits between 3.0.0-RC1-SNAPSHOT and 3.0.0-RC1
+### 3.1.0-RC4 is built => commits between 3.1.0-RC1-SNAPSHOT and 3.1.0-RC4
+### 3.2.0     is built => commits between 3.2.0-RC1-SNAPSHOT and 3.2.0
+### 3.2.0-HF1-RC1 is built => commits between 3.2.0-HF1-RC1-SNAPSHOT and 3.2.0-HF1-RC1
+### 3.2.0-HF1 is built => commits between 3.2.0-HF1-RC1-SNAPSHOT and 3.2.0-HF1
+function getChangelog() {
+	# Check if the current branch name matches the pattern master
+	runningOnMaster || { LOG -e "getChangelog() can be called only from the master branch."; exit 1; }
+
+	# Get the version of this recent build
+	# Check if the argument exists
+	if [ -z "$1" ]; then
+    	LOG -e "Version argument is missing"
+		exit 1
+	else
+    	version="$1"
+	fi
+
+	isHF=false
+	# get the major, minor, patch, RC and HF on branch 
+	if [[ $version =~ $TAG_PATTERN_RELEASE ]]; then		
+		major=${BASH_REMATCH[1]}
+		minor=${BASH_REMATCH[2]}
+		patch=${BASH_REMATCH[3]}
+		rc=${BASH_REMATCH[4]}
+		prev_tag=${major}.${minor}.${patch}"-RC1-SNAPSHOT"
+	elif [[ $version =~ $TAG_PATTERN_HOTFIX ]]; then		
+		major=${BASH_REMATCH[1]}
+		minor=${BASH_REMATCH[2]}
+		patch=${BASH_REMATCH[3]}
+		hf=${BASH_REMATCH[4]}
+		rc=${BASH_REMATCH[5]}
+		prev_tag=${major}.${minor}.${patch}"-HF"$hf"-RC1-SNAPSHOT"
+		isHF=true;
+	elif [[ $version =~ $TAG_PATTERN_FINAL_RELEASE ]]; then
+		major=${BASH_REMATCH[1]}
+		minor=${BASH_REMATCH[2]}
+		patch=${BASH_REMATCH[3]}
+		prev_tag=${major}.${minor}.${patch}"-RC1-SNAPSHOT"
+	elif [[ $version =~ $TAG_PATTERN_FINAL_HOTFIX ]]; then
+		major=${BASH_REMATCH[1]}
+		minor=${BASH_REMATCH[2]}
+		patch=${BASH_REMATCH[3]}
+		hf=${BASH_REMATCH[4]}
+		prev_tag=${major}.${minor}.${patch}"-HF"$hf"-RC1-SNAPSHOT"
+		isHF=true;
+	else
+		LOG -e "Version ($version) is not in the correct format" >&2
+		exit 1
+	fi
+
+	branch_name="VERSION-${major}.${minor}.${patch}"	
+    branchExists $branch_name && { LOG "Branch $branch_name exists. Script can continue."; } || { LOG -e "Branch $branch_name doesn't exist. Will exit."; exit 1; }	
+
+	# The tags should already exist at this point, double-check here
+	tagExists $version && LOG "Git tag '$version' exists in the remote repository." || 
+            { LOG -e "Git tag '$version' does not exists in the remote repository";exit 1; }
+	tagExists $prev_tag && LOG "Git tag '$prev_tag' exists in the remote repository." || 
+            { LOG -e "Git tag '$prev_tag' does not exists in the remote repository";exit 1; }
+	
+
+	changelog=$(git log --pretty=format:"%h %s" ${prev_tag}...${version})
+
+	LOG $changelog
+}
