@@ -163,7 +163,7 @@ jobs:
         echo "$cl" >> $GITHUB_ENV
         echo "EOF" >> $GITHUB_ENV
 
-        TAG_SHA=$(git rev-parse --short $ref)
+        TAG_SHA=$(git rev-parse --short ${{ needs.prepare-release-candidate.outputs.buildVersion }})
         echo "TAGSHA=$TAG_SHA" >> $GITHUB_ENV
     - name: Print changelog
       env:
