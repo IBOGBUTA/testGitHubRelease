@@ -9,12 +9,20 @@ jobs:
   create_release:
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Install Git
+        run: sudo apt-get update && sudo apt-get install -y git
+      - name: GIT comitter configuration
+        run: git config --global user.email "glaucio.porcidesczekailo@atos.net" && git config --global user.name "Glaucio Czekailo"
       - name: just a test
         run: |
           MULTI_LINES_TEXT="this is line one \n
                   this is line two \n
                   this is line three \n"
-                  
+
           echo "MULTI_LINES_TEXT_ENV_VAR<<EOF" >> $GITHUB_ENV  
           # here we can place the command that will generate multi-line text
           echo $MULTI_LINES_TEXT >> $GITHUB_ENV   
@@ -23,6 +31,19 @@ jobs:
         run: |
           echo "env:"
           echo ${{ env.MULTI_LINES_TEXT_ENV_VAR }}
+      - name: another test        
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          source ci/build_release_candidate.sh
+          changelog=$(getChangelog "3.4.0-RC10")
+          echo "Result: $changelog"        
+          echo "CHANGELOG<<EOF" >> $GITHUB_ENV
+          echo "$changelog" >> $GITHUB_ENV
+          echo "EOF" >> $GITHUB_ENV
+        
+          echo "env: "
+          echo "${{ env.CHANGELOG }}"
 
       #- name: Checkout code
       #  uses: actions/checkout@v2
