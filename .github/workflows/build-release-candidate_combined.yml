@@ -150,9 +150,7 @@ jobs:
     - name: Install Git
       run: sudo apt-get update && sudo apt-get install -y git
     - name: GIT comitter configuration
-      run: |
-        git config --global user.email "glaucio.porcidesczekailo@atos.net"
-        git config --global user.name "Glaucio Czekailo"
+      run: git config --global user.email "glaucio.porcidesczekailo@atos.net" && git config --global user.name "Glaucio Czekailo"
     - name: List commits for this release  
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
