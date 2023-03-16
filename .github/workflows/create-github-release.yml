@@ -19,9 +19,9 @@ jobs:
         run: git config --global user.email "glaucio.porcidesczekailo@atos.net" && git config --global user.name "Glaucio Czekailo"
       - name: just a test
         run: |
-          MULTI_LINES_TEXT="this is line one \n
-                  this is line two \n
-                  this is line three \n"
+          MULTI_LINES_TEXT="this is line one
+                  this is line two
+                  this is line three"
 
           echo "MULTI_LINES_TEXT_ENV_VAR<<EOF" >> $GITHUB_ENV  
           # here we can place the command that will generate multi-line text
@@ -30,7 +30,7 @@ jobs:
       - name: print the env
         run: |
           echo "env:"
-          echo ${{ env.MULTI_LINES_TEXT_ENV_VAR }}
+          echo "${{ env.MULTI_LINES_TEXT_ENV_VAR }}"
       - name: another test        
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
