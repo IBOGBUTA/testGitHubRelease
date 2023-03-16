@@ -350,6 +350,6 @@ function getChangelog() {
 	
 	git checkout master 2>&1
 
-	echo $changelog
+	echo `$changelog`
 	return 0	
 }
