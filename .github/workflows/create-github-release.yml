@@ -30,13 +30,13 @@ jobs:
       - name: print the env
         run: |
           echo "env:"
-          echo "${{ env.MULTI_LINES_TEXT_ENV_VAR }}"
+          echo '${{ env.MULTI_LINES_TEXT_ENV_VAR }}'
       - name: another test        
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           source ci/build_release_candidate.sh
-          changelog=$(getChangelog "3.4.0-RC10")
+          changelog=$(getChangelog "3.4.0-RC2")
           echo "Result: $changelog"        
           echo "CHANGELOG<<EOF" >> $GITHUB_ENV
           echo "$changelog" >> $GITHUB_ENV
