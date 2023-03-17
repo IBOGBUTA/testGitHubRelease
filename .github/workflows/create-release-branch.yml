@@ -24,11 +24,6 @@ jobs:
         token: ${{ secrets.GITHUB_TOKEN }}
     - name: Install Git
       run: sudo apt-get update && sudo apt-get install -y git
-    - name: Install Maven
-      uses: actions/setup-java@v1
-      with:
-        java-version: '8'
-        distribution: 'adopt'
     - name: GIT comitter configuration
       run: |
         git config --global user.email "glaucio.porcidesczekailo@atos.net"
