@@ -109,8 +109,15 @@ function buildNextRCPreparation() {
 	updateMavenConfig "$new_rc_version" "$new_rc_qualifier"	
 	LOG "Maven version updated to $new_rc_version$new_rc_qualifier (changed file: .mvn/maven.config)"	
 	
-	# Create the tag here, don't push
-	git diff --exit-code --quiet .mvn/maven.config || git commit -m "[WF] Automatic update of version to $new_rc_version$new_rc_qualifier" .mvn/maven.config
+	# Prepare files for this commit, will be later included in the releases tag
+	chart_version="$new_rc_version$new_rc_qualifier"
+	set_helm_chart_version "project" "${chart_version}"
+	set_client_version "${chart_version}"
+
+
+	# Create the tag here, don't push	
+	git add .mvn/maven.config "${HELM_CHARTS_LOCATION}/${chart}/Chart.yaml" "${HELM_CHARTS_LOCATION}/${chart}/values.yaml" "${CLIENT_LOCATION}/package.json"
+	git commit -m "[WF] Automatic update of version to $new_rc_version$new_rc_qualifier"	
 	git tag "$new_rc_version$new_rc_qualifier" "$branch_name" >/dev/null 2>&1
 	
 	# Get tag commit sha
