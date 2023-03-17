@@ -101,16 +101,18 @@ git checkout -b "$branch" >/dev/null 2>&1
 updateMavenConfig "$future_rc_version" "$future_rc_qualifier" && 
 	{ LOG "Updating .mvn/maven.config on branch $branch to $future_rc_version$future_rc_qualifier"; } || 
 	{ LOG -e "Failed to update Maven Config to $future_rc_version$future_rc_qualifier"; exit 1; }
-git diff --exit-code --quiet .mvn/maven.config || git commit -m "[WF] Automatic update of Maven version to $future_rc_version$future_rc_qualifier" .mvn/maven.config
-git tag "$future_rc_version$future_rc_qualifier" "$branch" >/dev/null 2>&1
-LOG "Actions done on branch $branch: New commit for the .mvn/maven.config changes, new tag $future_rc_version$future_rc_qualifier created." 
 
-# Update Helm Charts	
+# update Helm Charts and the rest of the versions
 chart_version="$future_rc_version$future_rc_qualifier"
-LOG "Helm chart will be set to use version: $chart_version"
-set_helm_chart_version "project" "${chart_version}" && LOG "Helm chart set to use version: $chart_version" || exit 1	
-# Will use the chart versioning for the client as well 
-set_client_version "${chart_version}" && LOG "Client set to use version: $chart_version" || exit 1
+set_helm_chart_version "project" "${chart_version}" "no-commit" && LOG "Helm chart set to use version: $chart_version" || exit 1
+set_client_version "${chart_version}" "no-commit" && LOG "Client set to use version: $chart_version" || exit 1
+
+# stage and commit all the files
+git add .mvn/maven.config "${HELM_CHARTS_LOCATION}/${chart}/Chart.yaml" "${HELM_CHARTS_LOCATION}/${chart}/values.yaml" "${CLIENT_LOCATION}/package.json"
+git commit -m "[WF] Automatic update of version to $future_rc_version$future_rc_qualifier"
+
+git tag "$future_rc_version$future_rc_qualifier" "$branch" >/dev/null 2>&1
+LOG "Actions done on branch $branch: new tag $future_rc_version$future_rc_qualifier created." 
 
 # back to master branch to continue the job.
 git checkout master >/dev/null 2>&1
@@ -119,15 +121,18 @@ git checkout master >/dev/null 2>&1
 updateMavenConfig "$new_master_version" "$new_master_qualifier" && 
 	{ LOG "Updating .mvn/maven.config on master to $new_master_version$new_master_qualifier"; } || 
 	{ LOG -e "Failed to update Maven Config to $new_master_version$new_master_qualifier"; exit 1; }
-git diff --exit-code --quiet .mvn/maven.config || git commit -m "Automatic update of Maven version to $new_master_version$new_master_qualifier" .mvn/maven.config
-git tag "$new_master_version$new_master_qualifier" master
-LOG "Actions done on master: New commit for the .mvn/maven.config changes, new tag $new_master_version$new_master_qualifier." 
 
+# update Helm Charts and the rest of the versions
 chart_version="$new_master_version$new_master_qualifier"
-LOG "Helm chart will be set to use version: $chart_version"
-set_helm_chart_version "project" "${chart_version}" && LOG "Helm chart set to use version: $chart_version" || exit 1	
-# Will use the chart versioning for the client as well 
-set_client_version "${chart_version}" && LOG "Client set to use version: $chart_version" || exit 1
+set_helm_chart_version "project" "${chart_version}" "no-commit" && LOG "Helm chart set to use version: $chart_version" || exit 1
+set_client_version "${chart_version}" "no-commit" && LOG "Client set to use version: $chart_version" || exit 1
+
+# stage and commit all the files
+git add .mvn/maven.config "${HELM_CHARTS_LOCATION}/${chart}/Chart.yaml" "${HELM_CHARTS_LOCATION}/${chart}/values.yaml" "${CLIENT_LOCATION}/package.json"
+git commit -m "[WF] Automatic update of version to $future_rc_version$future_rc_qualifier"
+
+git tag "$new_master_version$new_master_qualifier" master
+LOG "Actions done on master: new tag $new_master_version$new_master_qualifier." 
 
 git checkout "$branch" >/dev/null 2>&1
 git push --set-upstream origin "$branch" >/dev/null 2>&1
