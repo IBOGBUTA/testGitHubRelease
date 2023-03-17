@@ -111,8 +111,8 @@ function buildNextRCPreparation() {
 	
 	# Prepare files for this commit, will be later included in the releases tag
 	chart_version="$new_rc_version$new_rc_qualifier"
-	set_helm_chart_version "project" "${chart_version}"
-	set_client_version "${chart_version}"
+	set_helm_chart_version "project" "${chart_version}" "no-commit" || exit 1
+	set_client_version "${chart_version}" "no-commit" || exit 1
 
 
 	# Create the tag here, don't push	
