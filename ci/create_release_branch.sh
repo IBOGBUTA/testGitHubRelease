@@ -108,7 +108,7 @@ set_helm_chart_version "project" "${chart_version}" "no-commit" && LOG "Helm cha
 set_client_version "${chart_version}" "no-commit" && LOG "Client set to use version: $chart_version" || exit 1
 
 # stage and commit all the files
-git add .mvn/maven.config "${HELM_CHARTS_LOCATION}/${chart}/Chart.yaml" "${HELM_CHARTS_LOCATION}/${chart}/values.yaml" "${CLIENT_LOCATION}/package.json"
+git add .mvn/maven.config "${HELM_CHARTS_LOCATION}/project/Chart.yaml" "${HELM_CHARTS_LOCATION}/project/values.yaml" "${CLIENT_LOCATION}/package.json"
 git commit -m "[WF] Automatic update of version to $future_rc_version$future_rc_qualifier"
 
 git tag "$future_rc_version$future_rc_qualifier" "$branch" >/dev/null 2>&1
@@ -128,7 +128,7 @@ set_helm_chart_version "project" "${chart_version}" "no-commit" && LOG "Helm cha
 set_client_version "${chart_version}" "no-commit" && LOG "Client set to use version: $chart_version" || exit 1
 
 # stage and commit all the files
-git add .mvn/maven.config "${HELM_CHARTS_LOCATION}/${chart}/Chart.yaml" "${HELM_CHARTS_LOCATION}/${chart}/values.yaml" "${CLIENT_LOCATION}/package.json"
+git add .mvn/maven.config "${HELM_CHARTS_LOCATION}/project/Chart.yaml" "${HELM_CHARTS_LOCATION}/project/values.yaml" "${CLIENT_LOCATION}/package.json"
 git commit -m "[WF] Automatic update of version to $future_rc_version$future_rc_qualifier"
 
 git tag "$new_master_version$new_master_qualifier" master

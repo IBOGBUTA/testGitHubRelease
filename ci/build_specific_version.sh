@@ -116,7 +116,7 @@ function buildNextRCPreparation() {
 
 
 	# Create the tag here, don't push	
-	git add .mvn/maven.config "${HELM_CHARTS_LOCATION}/${chart}/Chart.yaml" "${HELM_CHARTS_LOCATION}/${chart}/values.yaml" "${CLIENT_LOCATION}/package.json"
+	git add .mvn/maven.config "$HELM_CHARTS_LOCATION/project/Chart.yaml" "$HELM_CHARTS_LOCATION/project/values.yaml" "$CLIENT_LOCATION/package.json"
 	git commit -m "[WF] Automatic update of version to $new_rc_version$new_rc_qualifier"	
 	git tag "$new_rc_version$new_rc_qualifier" "$branch_name" >/dev/null 2>&1
 	
