@@ -264,19 +264,19 @@ function updateForNextVersion() {
 		future_rc_qualifier="-HF$hf-RC$rc-SNAPSHOT"
 	fi	
 	
-	# Update the Maven version in the maven.config file for future RC builds
+	# Update the Maven version in the maven.config file
 	updateMavenConfig "$future_rc_version" "$future_rc_qualifier"	
-	git diff --exit-code --quiet .mvn/maven.config || git commit -m "Automatic update of next version $future_rc_version$future_rc_qualifier" .mvn/maven.config
-	git tag "$future_rc_version$future_rc_qualifier" "$branch_name"	
 	LOG "Maven version updated to $future_rc_version$future_rc_qualifier (changed file: .mvn/maven.config)"	
-
-	# Update Helm Charts	
-	chart_version="$future_rc_version$future_rc_qualifier"
-	LOG "Helm chart will be set to use version: $chart_version"
-	set_helm_chart_version "project" "${chart_version}" && LOG "Helm chart set to use version: $chart_version" || exit 1
 	
-	# Will use the chart versioning for the client as well 
-	set_client_version "${chart_version}" && LOG "Client set to use version: $chart_version" || exit 1
+	# Prepare files for this commit, will be later included in the releases tag
+	chart_version="$future_rc_version$future_rc_qualifier"
+	set_helm_chart_version "project" "${chart_version}" "no-commit" || exit 1
+	set_client_version "${chart_version}" "no-commit" || exit 1
+
+	# Create the tag here, don't push	
+	git add .mvn/maven.config "$HELM_CHARTS_LOCATION/project/Chart.yaml" "$HELM_CHARTS_LOCATION/project/values.yaml" "$CLIENT_LOCATION/package.json"
+	git commit -m "[WF] Automatic update of version to $future_rc_version$future_rc_qualifier"	
+	git tag "$future_rc_version$future_rc_qualifier" "$branch_name"	>/dev/null 2>&1
 
 	git push --tags >/dev/null 2>&1
 	git push >/dev/null 2>&1
