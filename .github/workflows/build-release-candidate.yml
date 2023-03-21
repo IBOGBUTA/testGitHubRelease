@@ -37,11 +37,11 @@ jobs:
         token: ${{ secrets.GITHUB_TOKEN }}
     - name: Install Git
       run: sudo apt-get update && sudo apt-get install -y git
-    - name: GIT comitter configuration
+    - name: GIT committer configuration
       run: |
         git config --global user.email "glaucio.porcidesczekailo@atos.net"
         git config --global user.name "Glaucio Czekailo"
-    - name: GIT confirm branch and restrictions
+    - name: GIT confirm input branch and restrictions
       run: |
         BRANCH="VERSION-${{ github.event.inputs.release_branch }}"
         RESTRICTION=""
@@ -102,7 +102,7 @@ jobs:
       build_base: '${{ needs.prepare-release-candidate.outputs.rc }}'
       version: '${{ needs.prepare-release-candidate.outputs.buildVersion }}'
       
-  update-tags-versions:
+  update-tags-for-future-versions:
     if: ${{ github.event.inputs.dry_run != 'true' }}
     needs: [prepare-release-candidate, build]
     runs-on: ubuntu-latest
@@ -113,11 +113,11 @@ jobs:
         token: ${{ secrets.GITHUB_TOKEN }}
     - name: Install Git
       run: sudo apt-get update && sudo apt-get install -y git
-    - name: GIT comitter configuration
+    - name: GIT committer configuration
       run: |
         git config --global user.email "glaucio.porcidesczekailo@atos.net"
         git config --global user.name "Glaucio Czekailo"
-    - name: Update version in Git
+    - name: Update future version in Git
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
@@ -140,7 +140,7 @@ jobs:
 
   create-GH-release:
     if: ${{ github.event.inputs.dry_run != 'true' }}
-    needs: [prepare-release-candidate, build, update-tags-versions]
+    needs: [prepare-release-candidate, build, update-tags-for-future-versions]
     runs-on: ubuntu-latest
     steps:
     - name: Checkout code
@@ -149,7 +149,7 @@ jobs:
         token: ${{ secrets.GITHUB_TOKEN }}
     - name: Install Git
       run: sudo apt-get update && sudo apt-get install -y git
-    - name: GIT comitter configuration
+    - name: GIT committer configuration
       run: git config --global user.email "glaucio.porcidesczekailo@atos.net" && git config --global user.name "Glaucio Czekailo"
     - name: Get commits for this release  
       env:
@@ -172,7 +172,7 @@ jobs:
         echo "${{ env.CHANGELOG }}"
     - name: Create Release
       id: create_release
-      uses: actions/create-release@v1
+      uses: actions/create-release@v1.1.4
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:

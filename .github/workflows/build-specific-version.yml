@@ -43,11 +43,11 @@ jobs:
       with:
         java-version: '8'
         distribution: 'adopt'
-    - name: GIT comitter configuration
+    - name: GIT committer configuration
       run: |
         git config --global user.email "glaucio.porcidesczekailo@atos.net"
         git config --global user.name "Glaucio Czekailo"
-    - name: Validate refs
+    - name: Validate input ref
       run: |       
         source ci/common_release_functions.sh        
         CALLED_VIA_BUILDRC=false

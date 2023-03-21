@@ -24,7 +24,7 @@ jobs:
         token: ${{ secrets.GITHUB_TOKEN }}
     - name: Install Git
       run: sudo apt-get update && sudo apt-get install -y git
-    - name: GIT comitter configuration
+    - name: GIT committer configuration
       run: |
         git config --global user.email "glaucio.porcidesczekailo@atos.net"
         git config --global user.name "Glaucio Czekailo"
