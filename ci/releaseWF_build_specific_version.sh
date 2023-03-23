@@ -1,7 +1,7 @@
 #!/bin/bash
 
 RUN_PATH=$(dirname "${BASH_SOURCE[0]}")
-source $RUN_PATH/common_release_functions.sh || { LOG -e "Cannot reach external resource $RUN_PATH/common_release_functions.sh. Will exit."; exit 1; }
+source $RUN_PATH/releaseWF_common_release_functions.sh || { LOG -e "Cannot reach external resource $RUN_PATH/common_release_functions.sh. Will exit."; exit 1; }
 
 TAG_FORMAT_SNAPSHOT_RC="^[0-9]*+\.[0-9]*+\.[0-9]*+-((HF[0-9]+-RC[0-9]+)|(RC[0-9]+))-SNAPSHOT$"
 TAG_FORMAT_ON_MASTER="^[0-9]*+\.[0-9]*+\.[0-9]*+-SNAPSHOT$"
@@ -28,7 +28,7 @@ DEF_ARGV_FINAL="final"
 ##			0 - in case of success
 function buildNextRCPreparation() {
 	# Check if the current branch name matches the pattern master
-	runningOnMaster || { LOG -e "buildNextRCPreparation() can be called only from the master branch."; exit 1; }
+	runningOnMaster || { LOG -e "buildNextRCPreparation() can be called only from the $MASTER_BRANCH branch."; exit 1; }
 	
 	# Get the version of the new build. Check if the argument exists
 	if [ -z "$1" ]; then
@@ -156,12 +156,12 @@ function buildCustomVersionPreparation() {
     	ref="$1"        
 	fi
 	
-	if [[ "$ref" == "master" ]]; then
+	if [[ "$ref" == "$MASTER_BRANCH" ]]; then
         git fetch >/dev/null 2>&1
-        git checkout master >/dev/null 2>&1
+        git checkout $MASTER_BRANCH >/dev/null 2>&1
         git fetch --tags >/dev/null 2>&1
         # get latest commit sha
-        COMMIT_SHA=$(git rev-parse --short master)
+        COMMIT_SHA=$(git rev-parse --short $MASTER_BRANCH)
         LOG -d "Build based on commit with sha $COMMIT_SHA"        
 		tag=$(git tag --sort=-v:refname | grep -E $TAG_FORMAT_ON_MASTER | head -n1)
         LOG -d "Version files will be updated based on $tag"
@@ -173,7 +173,7 @@ function buildCustomVersionPreparation() {
 			minor=${BASH_REMATCH[2]}
 			patch=${BASH_REMATCH[3]}
 		else
-			LOG -e "Latest tag on master ($tag) is not in the correct format." >&2
+			LOG -e "Latest tag on $MASTER_BRANCH ($tag) is not in the correct format." >&2
 			exit 1
 		fi
 		master_version="${major}.${minor}.${patch}"

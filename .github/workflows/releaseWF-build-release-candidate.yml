@@ -3,7 +3,7 @@ name: Z-2 Build Next Release Candidate
 on:
   workflow_dispatch:
     branches:
-      - master
+      - release-master
     inputs:             
       release_branch:
         description: 'Branch version'
@@ -51,7 +51,7 @@ jobs:
             RESTRICTION="hotfix"    
         fi
         
-        source ci/build_release_candidate.sh        
+        source ci/releaseWF_build_release_candidate.sh        
         checkBranchAndRestrictions $BRANCH $RESTRICTION
         RC=$?
         
@@ -75,7 +75,7 @@ jobs:
         if [[ ${{ github.event.inputs.final_release }} == "true" ]]; then
             final="final"
         fi        
-        source ci/build_release_candidate.sh        
+        source ci/releaseWF_build_release_candidate.sh        
         buildVersion=$(getNextVersion $BRANCH $final | tr -d '\n\r')
         echo "buildVersion=$buildVersion" >> $GITHUB_OUTPUT 
         
@@ -97,7 +97,7 @@ jobs:
   build:
     if: ${{ github.event.inputs.dry_run != 'true' }}
     needs: prepare-release-candidate
-    uses: ./.github/workflows/build-specific-version.yml
+    uses: ./.github/workflows/releaseWF-build-specific-version.yml
     with:
       build_base: '${{ needs.prepare-release-candidate.outputs.rc }}'
       version: '${{ needs.prepare-release-candidate.outputs.buildVersion }}'
@@ -131,7 +131,7 @@ jobs:
           fi  
           #make sure to run on master
           git checkout master
-          source ci/build_release_candidate.sh 
+          source ci/releaseWF_build_release_candidate.sh 
           updateForNextVersion "${{ needs.prepare-release-candidate.outputs.buildVersion }}" $final
         else
           echo "Error: Return code of the build job was $?"
@@ -155,7 +155,7 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
-        source ci/build_release_candidate.sh
+        source ci/releaseWF_build_release_candidate.sh
         changelog=$(getChangelog "${{ needs.prepare-release-candidate.outputs.buildVersion }}")
                 
         cl=$(echo "$changelog")

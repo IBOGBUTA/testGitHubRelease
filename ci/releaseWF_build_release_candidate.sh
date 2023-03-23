@@ -5,7 +5,7 @@
 ### This is common code for Release RC and for the HF RC
 
 RUN_PATH=$(dirname "${BASH_SOURCE[0]}")
-source $RUN_PATH/common_release_functions.sh || { LOG -e "Cannot reach external resource $RUN_PATH/common_release_functions.sh. Will exit."; exit 1; }
+source $RUN_PATH/releaseWF_common_release_functions.sh || { LOG -e "Cannot reach external resource $RUN_PATH/common_release_functions.sh. Will exit."; exit 1; }
 
 TAG_FORMAT_SNAPSHOT_RC="^[0-9]*+\.[0-9]*+\.[0-9]*+-((HF[0-9]+-RC[0-9]+)|(RC[0-9]+))-SNAPSHOT$"
 TAG_PATTERN_SNAPSHOT_RELEASE="^([0-9]+)\.([0-9]+)\.([0-9]+)-RC([0-9]+)-SNAPSHOT$"
@@ -29,7 +29,7 @@ DEF_ARGV_FINAL="final"
 ##			1 - if checks failed
 function checkBranchAndRestrictions() {
 	# This script can run only on master branch
-	runningOnMaster || { LOG -e "checkBranchAndRestrictions() can be called only from the master branch."; exit 1; }
+	runningOnMaster || { LOG -e "checkBranchAndRestrictions() can be called only from the $MASTER_BRANCH branch."; exit 1; }
 	
 	# Get the branch name where the check should be made
 	if [ -z "$1" ]; then
@@ -78,7 +78,7 @@ function checkBranchAndRestrictions() {
 			restrictionRes=1			
         fi	
 		#return to master
-		git checkout master >/dev/null 2>&1	
+		git checkout $MASTER_BRANCH >/dev/null 2>&1	
 
 		[[ $restrictionRes == 0 ]] && LOG "The next build will be a $restriction_type as expected."
 	fi	
@@ -98,7 +98,7 @@ function checkBranchAndRestrictions() {
 ##	   string - representing the next release version
 function getNextVersion() {
 	# This script can run only on master branch
-	runningOnMaster || { LOG -e "getNextVersion() can be called only from the master branch."; exit 1; }
+	runningOnMaster || { LOG -e "getNextVersion() can be called only from the $MASTER_BRANCH branch."; exit 1; }
 	
 	# Get the branch name where the new RC will be built
 	if [ -z "$1" ]; then
@@ -292,7 +292,7 @@ function updateForNextVersion() {
 ### 3.2.0-HF1 is built => commits between 3.2.0-HF1-RC1-SNAPSHOT and 3.2.0-HF1
 function getChangelog() {
 	# Check if the current branch name matches the pattern master
-	runningOnMaster || { LOG -e "getChangelog() can be called only from the master branch."; exit 1; }
+	runningOnMaster || { LOG -e "getChangelog() can be called only from the $MASTER_BRANCH branch."; exit 1; }
 
 	# Get the version of this recent build
 	# Check if the argument exists
@@ -348,7 +348,7 @@ function getChangelog() {
 	git fetch --tags >/dev/null 2>&1
 	changelog=$(git log --pretty=format:"%s" ${prev_tag}...${version} | grep -E "^\[W")
 	
-	git checkout master >/dev/null 2>&1
+	git checkout $MASTER_BRANCH >/dev/null 2>&1
 
 	echo "$changelog"
 	return 0	

@@ -5,7 +5,7 @@
 
 RUN_PATH=$(dirname "${BASH_SOURCE[0]}")
 
-source $RUN_PATH/common_release_functions.sh || { LOG -e "Cannot reach external resource $RUN_PATH/common_release_functions.sh. Will exit."; exit 1; }
+source $RUN_PATH/releaseWF_common_release_functions.sh || { LOG -e "Cannot reach external resource $RUN_PATH/common_release_functions.sh. Will exit."; exit 1; }
 TAG_FORMAT_ON_MASTER="^[0-9]*+\.[0-9]*+\.[0-9]*+-SNAPSHOT$"
 TAG_PATTERN_ON_MASTER="([0-9]+)\.([0-9]+)\.([0-9]+)-SNAPSHOT"
 TAG_FORMAT_SNAPSHOT_RC="^[0-9]*+\.[0-9]*+\.[0-9]*+-((HF[0-9]+-RC[0-9]+)|(RC[0-9]+))-SNAPSHOT$"
@@ -18,7 +18,7 @@ TAG_PATTERN_SNAPSHOT_RELEASE="^([0-9]+)\.([0-9]+)\.([0-9]+)-RC([0-9]+)-SNAPSHOT$
 ##			0 - if all tags match the format X.Y.Z-HFN-RCN-SNAPSHOT
 ##			1 - if any matches the format X.Y.Z-RCN-SNAPSHOT - this indicates the fact that this version wasn't released yet
 function readyForNewReleaseBranch() {
-    git checkout master >/dev/null 2>&1
+    git checkout $MASTER_BRANCH >/dev/null 2>&1
     git ls-remote --heads origin | awk -F "/" '/VERSION-*/ {print $NF}' | {
     safeToBranchOff=0
     while read available_branch; do 
@@ -32,12 +32,12 @@ function readyForNewReleaseBranch() {
     exit $safeToBranchOff
     }
     RC=$?
-    git checkout master >/dev/null 2>&1
+    git checkout $MASTER_BRANCH >/dev/null 2>&1
     return $RC
 }
 
 # This script can run only on master branch
-runningOnMaster && { LOG "$0 called from master. Script can continue."; } || { LOG -e "You should create a RC branch from the master branch."; exit 1; }
+runningOnMaster && { LOG "$0 called from $MASTER_BRANCH. Script can continue."; } || { LOG -e "You should create a RC branch from the $MASTER_BRANCH branch."; exit 1; }
 
 # Get the release type of this new branch
 # Check if the first argument exists
@@ -68,7 +68,7 @@ if [[ $tag =~ $TAG_PATTERN_ON_MASTER ]]; then
     minor=${BASH_REMATCH[2]}
     patch=${BASH_REMATCH[3]}
 else
-    LOG -e "Latest tag on master ($tag) is not in the correct format." >&2
+    LOG -e "Latest tag on $MASTER_BRANCH ($tag) is not in the correct format." >&2
     exit 1
 fi
 
@@ -95,7 +95,7 @@ future_rc_version="${major}.${minor}.${patch}"
 future_rc_qualifier="-RC1-SNAPSHOT"
 
 # create RC branch
-git checkout -b "$branch" >/dev/null 2>&1
+git checkout -b "$branch" $MASTER_BRANCH >/dev/null 2>&1
 
 # update Maven config on release branch
 updateMavenConfig "$future_rc_version" "$future_rc_qualifier" && 
@@ -115,11 +115,11 @@ git tag "$future_rc_version$future_rc_qualifier" "$branch" >/dev/null 2>&1
 LOG "Actions done on branch $branch: new tag $future_rc_version$future_rc_qualifier created." 
 
 # back to master branch to continue the job.
-git checkout master >/dev/null 2>&1
+git checkout $MASTER_BRANCH >/dev/null 2>&1
 
 # update Maven config on master
 updateMavenConfig "$new_master_version" "$new_master_qualifier" && 
-	{ LOG "Updating .mvn/maven.config on master to $new_master_version$new_master_qualifier"; } || 
+	{ LOG "Updating .mvn/maven.config on $MASTER_BRANCH to $new_master_version$new_master_qualifier"; } || 
 	{ LOG -e "Failed to update Maven Config to $new_master_version$new_master_qualifier"; exit 1; }
 
 # update Helm Charts and the rest of the versions
@@ -131,15 +131,15 @@ set_client_version "${chart_version}" "no-commit" && LOG "Client set to use vers
 git add .mvn/maven.config "${HELM_CHARTS_LOCATION}/project/Chart.yaml" "${HELM_CHARTS_LOCATION}/project/values.yaml" "${CLIENT_LOCATION}/package.json"
 git commit -m "[WF] Automatic update of version to $future_rc_version$future_rc_qualifier"
 
-git tag "$new_master_version$new_master_qualifier" master
-LOG "Actions done on master: new tag $new_master_version$new_master_qualifier." 
+git tag "$new_master_version$new_master_qualifier" $MASTER_BRANCH
+LOG "Actions done on $MASTER_BRANCH: new tag $new_master_version$new_master_qualifier." 
 
 git checkout "$branch" >/dev/null 2>&1
 git push --set-upstream origin "$branch" >/dev/null 2>&1
 git push --tags >/dev/null 2>&1
 LOG "Changes on branch $branch saved"
 
-git checkout master >/dev/null 2>&1
-git push origin master >/dev/null 2>&1
+git checkout $MASTER_BRANCH >/dev/null 2>&1
+git push origin $MASTER_BRANCH >/dev/null 2>&1
 git push --tags >/dev/null 2>&1
-LOG "Changes on master saved"
+LOG "Changes on $MASTER_BRANCH saved"

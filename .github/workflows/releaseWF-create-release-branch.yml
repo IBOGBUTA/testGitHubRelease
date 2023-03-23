@@ -3,7 +3,7 @@ name: Z-1 Create Release Branch
 on:
   workflow_dispatch:
     branches:
-      - master
+      - release-master
     inputs:
       release_type:
         type: choice
@@ -34,4 +34,4 @@ jobs:
       run: |
         git remote set-url origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/$GITHUB_REPOSITORY
         echo "Will create a ${{ github.event.inputs.release_type }} release branch"
-        bash ci/create_release_branch.sh ${{ github.event.inputs.release_type }}
+        bash ci/releaseWF_create_release_branch.sh ${{ github.event.inputs.release_type }}

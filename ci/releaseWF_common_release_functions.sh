@@ -3,6 +3,7 @@
 #Globals
 HELM_CHARTS_LOCATION="charts"
 CLIENT_LOCATION="project-client"
+MASTER_BRANCH="release-master"
 
 # General
 LOG() {
@@ -20,7 +21,7 @@ LOG() {
 # Git related 
 runningOnMaster() {
 	current_branch=$(git rev-parse --abbrev-ref HEAD)
-	if [[ ! $current_branch =~ ^master$ ]]; then		
+	if [[ ! $current_branch =~ ^$MASTER_BRANCH$ ]]; then		
 		return 1
 	fi
 	return 0

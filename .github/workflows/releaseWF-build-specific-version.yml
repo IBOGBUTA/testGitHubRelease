@@ -11,7 +11,7 @@ on:
         required: true        
   workflow_dispatch:
     branches:
-      - master
+      - release-master
     inputs:             
       build_base:
         type: choice
@@ -49,7 +49,7 @@ jobs:
         git config --global user.name "Glaucio Czekailo"
     - name: Validate input ref
       run: |       
-        source ci/common_release_functions.sh        
+        source ci/releaseWF_common_release_functions.sh        
         CALLED_VIA_BUILDRC=false
         CHECKOUT_FROM=""
                 
@@ -88,7 +88,7 @@ jobs:
         git remote set-url origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/$GITHUB_REPOSITORY         
         ON_BRANCH=$(git rev-parse --abbrev-ref HEAD)
         echo "Running on branch $ON_BRANCH"
-        source ci/build_specific_version.sh
+        source ci/releaseWF_build_specific_version.sh
 
         if [[ "$CALLED_VIA_BUILDRC" == "true" ]]; then            
             if [[ "${{ inputs.build_base }}" == "final" ]]; then                
