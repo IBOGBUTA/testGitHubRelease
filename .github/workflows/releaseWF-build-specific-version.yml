@@ -1,0 +1,124 @@
+name: Z-3 Build Custom Version
+
+on:
+  workflow_call:
+    inputs:
+      build_base:
+        type: string
+        required: true
+      version:
+        type: string
+        required: true        
+  workflow_dispatch:
+    branches:
+      - master
+    inputs:             
+      build_base:
+        type: choice
+        description: 'Build is based on:'
+        required: true
+        options:
+        - current version on master
+        - current version on branch
+        - specific version(tag)
+        default: current version on branch
+      version:
+        description: 'Branch Version or Specific Version(tag):'
+        required: false
+        default: '3.0.0'
+jobs:
+  build-release:
+    runs-on: ubuntu-latest
+    env:
+      TZ: UTC
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+    - name: Install Git
+      run: sudo apt-get update && sudo apt-get install -y git
+    - name: Install Maven
+      uses: actions/setup-java@v1
+      with:
+        java-version: '8'
+        distribution: 'adopt'
+    - name: GIT committer configuration
+      run: |
+        git config --global user.email "glaucio.porcidesczekailo@atos.net"
+        git config --global user.name "Glaucio Czekailo"
+    - name: Validate input ref
+      run: |       
+        source ci/common_release_functions.sh        
+        CALLED_VIA_BUILDRC=false
+        CHECKOUT_FROM=""
+                
+        if [[ "${{ inputs.build_base }}" == "current version on master" ]]; then
+            echo "Will use latest version on master for build"
+            CHECKOUT_FROM="master"
+        elif [[ "${{ inputs.build_base }}" == "current version on branch" ]]; then
+            BRANCH="VERSION-${{ inputs.version }}"            
+            branchExists $BRANCH && echo "Git branch '$BRANCH' exists in the remote repository. Will build here." || 
+                    { echo "Error: Git branch '$BRANCH' does not exists in the remote repository";exit 1; }         
+            CHECKOUT_FROM="$BRANCH"                                                          
+        elif [[ "${{ inputs.build_base }}" == "specific version(tag)" ]]; then      
+            TAG="${{ inputs.version }}"   
+            tagExists $TAG && echo "Git tag '$TAG' exists in the remote repository. Will build here." || 
+                    { echo "Error: Git tag '$TAG' does not exists in the remote repository";exit 1; }
+            CHECKOUT_FROM="$TAG"            
+        elif [[ "${{ inputs.build_base }}" == "next" || "${{ inputs.build_base }}" == "final" ]]; then
+            #hidden values              
+            CALLED_VIA_BUILDRC=true
+            echo "Workflow was called from Build Release Candidate. Will build version ${{ inputs.version }}."
+            echo "Will build ${{ inputs.version }}"
+        else
+            echo "Unknown option. Will exit."
+            exit 1
+        fi
+        
+        echo "CALLED_VIA_BUILDRC=$CALLED_VIA_BUILDRC" >> $GITHUB_ENV 
+        echo "CHECKOUT_FROM=$CHECKOUT_FROM" >> $GITHUB_ENV 
+                
+    - name: Pre-build version preparation
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        sudo snap install yq
+        
+        git remote set-url origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/$GITHUB_REPOSITORY         
+        ON_BRANCH=$(git rev-parse --abbrev-ref HEAD)
+        echo "Running on branch $ON_BRANCH"
+        source ci/build_specific_version.sh
+
+        if [[ "$CALLED_VIA_BUILDRC" == "true" ]]; then            
+            if [[ "${{ inputs.build_base }}" == "final" ]]; then                
+                buildNextRCPreparation "${{ inputs.version }}" final
+            else
+                buildNextRCPreparation "${{ inputs.version }}"
+            fi
+        else
+            echo "Workflow called via GitHub Action UI"            
+            buildCustomVersionPreparation $CHECKOUT_FROM
+        fi
+        
+    - name: Run build script
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        ON_BRANCH=$(git rev-parse --abbrev-ref HEAD)
+        echo "Running on branch $ON_BRANCH"
+        
+        #Just a temporary check here
+        git status       
+        
+    - name: Post-build actions
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        ON_BRANCH=$(git rev-parse --abbrev-ref HEAD)
+        echo "Running on branch $ON_BRANCH"
+        if [[ "$CALLED_VIA_BUILDRC" == "true" ]]; then                      
+            # wil save version changes and build tag here
+            git push --tags 
+            git push
+        fi

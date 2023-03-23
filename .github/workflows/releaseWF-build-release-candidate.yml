@@ -1,0 +1,184 @@
+name: Z-2 Build Next Release Candidate
+
+on:
+  workflow_dispatch:
+    branches:
+      - master
+    inputs:             
+      release_branch:
+        description: 'Branch version'
+        required: true
+        default: '3.0.0'
+      final_release:
+        type: boolean
+        description: 'Build final stable release'
+      build_restrictions:
+        type: choice
+        description: 'Build type restrictions'
+        required: true
+        options:
+        - No restrictions
+        - Must be a Release
+        - Must be a Hotfix
+        default: 'No restrictions'
+      dry_run:
+        type: boolean
+        description: 'Dry run(no build, no commits, just check for next version)'
+jobs:
+  prepare-release-candidate:
+    runs-on: ubuntu-latest
+    outputs: 
+      buildVersion: ${{ steps.prebuild.outputs.buildVersion }}
+      rc: ${{ steps.prebuild.outputs.rc }}
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+    - name: Install Git
+      run: sudo apt-get update && sudo apt-get install -y git
+    - name: GIT committer configuration
+      run: |
+        git config --global user.email "glaucio.porcidesczekailo@atos.net"
+        git config --global user.name "Glaucio Czekailo"
+    - name: GIT confirm input branch and restrictions
+      run: |
+        BRANCH="VERSION-${{ github.event.inputs.release_branch }}"
+        RESTRICTION=""
+        if [[ "${{ github.event.inputs.build_restrictions }}" == "Must be a Release" ]]; then
+            RESTRICTION="release"
+        elif [[ "${{ github.event.inputs.build_restrictions }}" == "Must be a Hotfix" ]]; then
+            RESTRICTION="hotfix"    
+        fi
+        
+        source ci/build_release_candidate.sh        
+        checkBranchAndRestrictions $BRANCH $RESTRICTION
+        RC=$?
+        
+        if [[ "$RC" != "0" ]]; then
+            exit 1
+        fi
+               
+        echo "BRANCH=$BRANCH" >> $GITHUB_ENV        
+    - name: Pre-build version preparation
+      id: prebuild
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        git remote set-url origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/$GITHUB_REPOSITORY        
+        echo "Will work on branch VERSION-${{ github.event.inputs.release_branch }}"
+        echo "Release type will be final? Answer: ${{ github.event.inputs.final_release }}" 
+        ON_BRANCH=$(git rev-parse --abbrev-ref HEAD)
+        echo "Running on branch $ON_BRANCH"
+                       
+        final=""
+        if [[ ${{ github.event.inputs.final_release }} == "true" ]]; then
+            final="final"
+        fi        
+        source ci/build_release_candidate.sh        
+        buildVersion=$(getNextVersion $BRANCH $final | tr -d '\n\r')
+        echo "buildVersion=$buildVersion" >> $GITHUB_OUTPUT 
+        
+        if [[ "$final" == "final" ]]; then 
+            echo "rc=$final" >> $GITHUB_OUTPUT
+        else
+            echo "rc=next" >> $GITHUB_OUTPUT
+        fi
+                
+        if [[ ${{ github.event.inputs.dry_run }} == true ]]; then
+            echo "This was a dry run. Here are the details: "
+            echo "- Branch where the build will be done:        $BRANCH"
+            echo "- Version that will be built:                 $buildVersion"
+            echo "- Will it be a final stable build:            ${{ github.event.inputs.final_release }}"
+            echo "- Restrictions for this build:                ${{ github.event.inputs.build_restrictions }}"
+        else
+            echo "Build will continue for version: $buildVersion"
+        fi
+  build:
+    if: ${{ github.event.inputs.dry_run != 'true' }}
+    needs: prepare-release-candidate
+    uses: ./.github/workflows/build-specific-version.yml
+    with:
+      build_base: '${{ needs.prepare-release-candidate.outputs.rc }}'
+      version: '${{ needs.prepare-release-candidate.outputs.buildVersion }}'
+      
+  update-tags-for-future-versions:
+    if: ${{ github.event.inputs.dry_run != 'true' }}
+    needs: [prepare-release-candidate, build]
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+    - name: Install Git
+      run: sudo apt-get update && sudo apt-get install -y git
+    - name: GIT committer configuration
+      run: |
+        git config --global user.email "glaucio.porcidesczekailo@atos.net"
+        git config --global user.name "Glaucio Czekailo"
+    - name: Update future version in Git
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        buildRC=$?
+        if [[ "$buildRC" == "0" ]]; then
+          echo "Will update the following ${{ needs.prepare-release-candidate.outputs.buildVersion }}"
+          
+          final=""
+          if [[ ${{ github.event.inputs.final_release }} == "true" ]]; then
+            final="final"
+          fi  
+          #make sure to run on master
+          git checkout master
+          source ci/build_release_candidate.sh 
+          updateForNextVersion "${{ needs.prepare-release-candidate.outputs.buildVersion }}" $final
+        else
+          echo "Error: Return code of the build job was $?"
+          exit $buildRC
+        fi     
+
+  create-GH-release:
+    if: ${{ github.event.inputs.dry_run != 'true' }}
+    needs: [prepare-release-candidate, build, update-tags-for-future-versions]
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+    - name: Install Git
+      run: sudo apt-get update && sudo apt-get install -y git
+    - name: GIT committer configuration
+      run: git config --global user.email "glaucio.porcidesczekailo@atos.net" && git config --global user.name "Glaucio Czekailo"
+    - name: Get commits for this release  
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        source ci/build_release_candidate.sh
+        changelog=$(getChangelog "${{ needs.prepare-release-candidate.outputs.buildVersion }}")
+                
+        cl=$(echo "$changelog")
+        echo "CHANGELOG<<EOF" >> $GITHUB_ENV
+        echo "$cl" >> $GITHUB_ENV
+        echo "EOF" >> $GITHUB_ENV
+
+        TAG_SHA=$(git rev-parse --short ${{ needs.prepare-release-candidate.outputs.buildVersion }})
+        echo "TAGSHA=$TAG_SHA" >> $GITHUB_ENV
+    - name: Print changelog
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        echo "${{ env.CHANGELOG }}"
+    - name: Create Release
+      id: create_release
+      uses: actions/create-release@v1.1.4
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: ${{ needs.prepare-release-candidate.outputs.buildVersion }}
+        release_name: ${{ needs.prepare-release-candidate.outputs.buildVersion }}
+        body: |
+          Commits included in ${{ needs.prepare-release-candidate.outputs.buildVersion }}:
+            ${{ env.CHANGELOG }}
+        
