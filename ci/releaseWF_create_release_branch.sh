@@ -6,10 +6,6 @@
 RUN_PATH=$(dirname "${BASH_SOURCE[0]}")
 
 source $RUN_PATH/releaseWF_common_release_functions.sh || { LOG -e "Cannot reach external resource $RUN_PATH/common_release_functions.sh. Will exit."; exit 1; }
-TAG_FORMAT_ON_MASTER="^[0-9]*+\.[0-9]*+\.[0-9]*+-SNAPSHOT$"
-TAG_PATTERN_ON_MASTER="([0-9]+)\.([0-9]+)\.([0-9]+)-SNAPSHOT"
-TAG_FORMAT_SNAPSHOT_RC="^[0-9]*+\.[0-9]*+\.[0-9]*+-((HF[0-9]+-RC[0-9]+)|(RC[0-9]+))-SNAPSHOT$"
-TAG_PATTERN_SNAPSHOT_RELEASE="^([0-9]+)\.([0-9]+)\.([0-9]+)-RC([0-9]+)-SNAPSHOT$"
 
 ## readyForNewReleaseBranch()
 ## This function will check all existing branches that match the format VERSION-* if the last commit
@@ -55,12 +51,23 @@ else
 fi
 
 # get the latest tag
-git fetch --tags >/dev/null 2>&1
+git fetch --tags 
 
 # Make sure all branches are available only for HF release.
+# Note: readyForNewReleaseBranch will switch back to master branch as a last step
 readyForNewReleaseBranch && LOG "New branch can be created. There's no open development branch or they all reached HF phase." || exit 1
 
-tag=$(git tag --sort=-v:refname | grep -E $TAG_FORMAT_ON_MASTER | head -n1)
+# get the latest tag
+git fetch #>/dev/null 2>&1
+git fetch --tags #>/dev/null 2>&1
+
+echo "Git list:"
+git tag -l
+echo ""
+echo "Git list merged:"
+git tag --merged $MASTER_BRANCH --sort=-v:refname
+echo ""
+tag=$(git tag --merged $MASTER_BRANCH --sort=-v:refname | grep -E $TAG_FORMAT_ON_MASTER | head -n1)
 
 # get the major, minor, and patch
 if [[ $tag =~ $TAG_PATTERN_ON_MASTER ]]; then
@@ -93,53 +100,74 @@ branch="VERSION-${major}.${minor}.${patch}"
 # Setup RC tag name for future development builds on this release branch
 future_rc_version="${major}.${minor}.${patch}"
 future_rc_qualifier="-RC1-SNAPSHOT"
+LOG "Future releases on this branch will be based on $future_rc_version$future_rc_qualifier"
+
+# log current version files
+grep_version_files
 
 # create RC branch
-git checkout -b "$branch" $MASTER_BRANCH >/dev/null 2>&1
+git checkout -b "$branch" $MASTER_BRANCH >/dev/null 2>&1 && 
+	{ LOG "New branch $branch created from $MASTER_BRANCH"; } ||
+	{ LOG -e "Failed to checkout new branch $branch from $MASTER_BRANCH"; exit 1; }
 
 # update Maven config on release branch
 updateMavenConfig "$future_rc_version" "$future_rc_qualifier" && 
-	{ LOG "Updating .mvn/maven.config on branch $branch to $future_rc_version$future_rc_qualifier"; } || 
-	{ LOG -e "Failed to update Maven Config to $future_rc_version$future_rc_qualifier"; exit 1; }
+	{ LOG "Updating $MAVEN_VERSION_FILE on branch $branch to $future_rc_version$future_rc_qualifier"; } || 
+	{ LOG -e "Failed to update Maven Config($MAVEN_VERSION_FILE) to $future_rc_version$future_rc_qualifier"; exit 1; }
 
 # update Helm Charts and the rest of the versions
 chart_version="$future_rc_version$future_rc_qualifier"
-set_helm_chart_version "project" "${chart_version}" "no-commit" && LOG "Helm chart set to use version: $chart_version" || exit 1
+set_helm_chart_version "${chart_version}" "no-commit" && LOG "Helm chart set to use version: $chart_version" || exit 1
 set_client_version "${chart_version}" "no-commit" && LOG "Client set to use version: $chart_version" || exit 1
 
 # stage and commit all the files
-git add .mvn/maven.config "${HELM_CHARTS_LOCATION}/project/Chart.yaml" "${HELM_CHARTS_LOCATION}/project/values.yaml" "${CLIENT_LOCATION}/package.json"
-git commit -m "[WF] Automatic update of version to $future_rc_version$future_rc_qualifier"
+git add $MAVEN_VERSION_FILE $HELM_CHARTS_VERSION_FILE $HELM_CHARTS_VERSION_FILE_keycloak $HELM_CHARTS_VERSION_FILE_keycloak_operator $HELM_CHARTS_VERSION_FILE_keycloak_theme $CLIENT_VERSION_FILE || 
+	{ LOG -e "Failed to stage version files"; exit 1; }
+git commit -m "[WF] Automatic update of version to $future_rc_version$future_rc_qualifier" ||
+	{ LOG -e "Could not commit new version files"; exit 1; }
 
-git tag "$future_rc_version$future_rc_qualifier" "$branch" >/dev/null 2>&1
-LOG "Actions done on branch $branch: new tag $future_rc_version$future_rc_qualifier created." 
+branch_future_tag="$future_rc_version$future_rc_qualifier"
+git tag "$future_rc_version$future_rc_qualifier" "$branch" >/dev/null 2>&1 &&
+	{ LOG "Actions done on branch $branch: new tag $future_rc_version$future_rc_qualifier created."; } ||
+	{ LOG -e "Failed to create new tag $future_rc_version$future_rc_qualifier on branch $branch"; exit 1; }
+
+# log current version files
+grep_version_files
 
 # back to master branch to continue the job.
-git checkout $MASTER_BRANCH >/dev/null 2>&1
+git checkout $MASTER_BRANCH >/dev/null 2>&1 ||
+	{ LOG -e "Failed to checkout $MASTER_BRANCH"; exit 1; }
 
 # update Maven config on master
 updateMavenConfig "$new_master_version" "$new_master_qualifier" && 
-	{ LOG "Updating .mvn/maven.config on $MASTER_BRANCH to $new_master_version$new_master_qualifier"; } || 
-	{ LOG -e "Failed to update Maven Config to $new_master_version$new_master_qualifier"; exit 1; }
+	{ LOG "Updating $MAVEN_VERSION_FILE on $MASTER_BRANCH to $new_master_version$new_master_qualifier"; } || 
+	{ LOG -e "Failed to update Maven Config($MAVEN_VERSION_FILE) to $new_master_version$new_master_qualifier"; exit 1; }
 
 # update Helm Charts and the rest of the versions
 chart_version="$new_master_version$new_master_qualifier"
-set_helm_chart_version "project" "${chart_version}" "no-commit" && LOG "Helm chart set to use version: $chart_version" || exit 1
+set_helm_chart_version "${chart_version}" "no-commit" && LOG "Helm chart set to use version: $chart_version" || exit 1
 set_client_version "${chart_version}" "no-commit" && LOG "Client set to use version: $chart_version" || exit 1
 
 # stage and commit all the files
-git add .mvn/maven.config "${HELM_CHARTS_LOCATION}/project/Chart.yaml" "${HELM_CHARTS_LOCATION}/project/values.yaml" "${CLIENT_LOCATION}/package.json"
-git commit -m "[WF] Automatic update of version to $future_rc_version$future_rc_qualifier"
+git add $MAVEN_VERSION_FILE $HELM_CHARTS_VERSION_FILE $HELM_CHARTS_VERSION_FILE_keycloak $HELM_CHARTS_VERSION_FILE_keycloak_operator $HELM_CHARTS_VERSION_FILE_keycloak_theme $CLIENT_VERSION_FILE || 
+	{ LOG -e "Failed to stage version files"; exit 1; }
+git commit -m "[WF] Automatic update of version to $future_rc_version$future_rc_qualifier" ||
+	{ LOG -e "Could not commit new version files"; exit 1; }
 
-git tag "$new_master_version$new_master_qualifier" $MASTER_BRANCH
-LOG "Actions done on $MASTER_BRANCH: new tag $new_master_version$new_master_qualifier." 
+master_future_tag="$new_master_version$new_master_qualifier"
+git tag "$new_master_version$new_master_qualifier" $MASTER_BRANCH &&
+	{ LOG "Actions done on $MASTER_BRANCH: new tag $new_master_version$new_master_qualifier."; } ||
+	{ LOG -e "Failed to create new tag $new_master_version$new_master_qualifier on $MASTER_BRANCH"; exit 1; }
 
-git checkout "$branch" >/dev/null 2>&1
-git push --set-upstream origin "$branch" >/dev/null 2>&1
-git push --tags >/dev/null 2>&1
+# log current version files
+grep_version_files
+
+git checkout "$branch"  || { LOG -e "Could not checkout new branch $branch"; exit 1; }
+git push --set-upstream origin "$branch" || { LOG -e "Could not push new branch $branch to origin"; exit 1; }
+git push origin $branch_future_tag || { LOG -e "Could not push new tags to branch $branch. Manually revert previous actions or create the tags manually."; }
 LOG "Changes on branch $branch saved"
 
-git checkout $MASTER_BRANCH >/dev/null 2>&1
-git push origin $MASTER_BRANCH >/dev/null 2>&1
-git push --tags >/dev/null 2>&1
+git checkout $MASTER_BRANCH  || { LOG -e "Could not checkout $MASTER_BRANCH"; exit 1; }
+git push origin $MASTER_BRANCH  || { LOG -e "Could not push changes to $MASTER_BRANCH"; exit 1; } 
+git push origin $master_future_tag  || { LOG -e "Could not push new tags to $MASTER_BRANCH. Manually revert previous actions or create the tags manually."; } 
 LOG "Changes on $MASTER_BRANCH saved"
