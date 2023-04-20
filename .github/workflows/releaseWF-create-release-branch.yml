@@ -32,6 +32,7 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ secrets.ACTION_TOKEN  }}
       run: |
+        git remote set-url origin https://x-access-token:${{ secrets.ACTION_TOKEN }}@github.com/$GITHUB_REPOSITORY
         ON_BRANCH=$(git rev-parse --abbrev-ref HEAD)
         echo "Workflow is running on branch $ON_BRANCH"
         echo "Request: create a ${{ github.event.inputs.release_type }} release branch"
