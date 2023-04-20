@@ -51,7 +51,7 @@ else
 fi
 
 # get the latest tag
-git fetch --tags 
+git fetch --unshallow --tags 
 
 # Make sure all branches are available only for HF release.
 # Note: readyForNewReleaseBranch will switch back to master branch as a last step
@@ -59,7 +59,7 @@ readyForNewReleaseBranch && LOG "New branch can be created. There's no open deve
 
 # get the latest tag
 git fetch #>/dev/null 2>&1
-git fetch --tags #>/dev/null 2>&1
+git fetch --unshallow --tags #>/dev/null 2>&1
 
 echo "Git list:"
 git tag -l
