@@ -3,7 +3,7 @@
 #Globals
 HELM_CHARTS_LOCATION="charts"
 CLIENT_LOCATION="project-client"
-MASTER_BRANCH="release-master"
+MASTER_BRANCH="master"
 
 # General
 LOG() {
