@@ -5,7 +5,7 @@ MASTER_BRANCH="master"
 DEBUG=true
 
 #PATHS
-CLIENT_LOCATION="gemma-client"
+CLIENT_LOCATION="project-client"
 HELM_CHARTS_LOCATION="charts"
 MAVEN_VERSION_FILE=".mvn/maven.config"
 HELM_CHARTS_VERSION_FILE="${HELM_CHARTS_LOCATION}/project/Chart.yaml"
