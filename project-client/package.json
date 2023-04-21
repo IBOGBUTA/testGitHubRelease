@@ -1,6 +1,6 @@
 {
   "name": "project-client",
-  "version": "2.0.2-SNAPSHOT",
+  "version": "2.0.1-RC1-SNAPSHOT",
   "scripts": {},
   "private": true,
   "dependencies": {},
