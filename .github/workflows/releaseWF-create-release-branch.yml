@@ -21,7 +21,7 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v3
       with:
-        token: ${{ secrets.GITHUB_ACTIONS_TOKEN  }}
+        token: ${{ secrets.SECURE_ACTION_TOKEN  }}
     - name: Install Git
       run: sudo apt-get update && sudo apt-get install -y git
     - name: GIT committer configuration
@@ -30,7 +30,7 @@ jobs:
         git config --global user.name "Glaucio Czekailo"
     - name: Run CI script
       env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_ACTIONS_TOKEN  }}
+        GITHUB_TOKEN: ${{ secrets.SECURE_ACTION_TOKEN  }}
       run: |
         git remote set-url origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/$GITHUB_REPOSITORY
         ON_BRANCH=$(git rev-parse --abbrev-ref HEAD)
